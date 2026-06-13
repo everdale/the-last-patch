@@ -1,0 +1,9 @@
+# Claude Code local files (keep launch.json; ignore personal/local settings)
+.claude/settings.local.json
+.claude/*.local.json
+memory/
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+*.swp

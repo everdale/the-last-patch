@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Last Patch — BUG-031 (playable vignette)</title>
+<style>
+  :root{
+    --bg:#0d0f14; --panel:#141823; --ink:#e8e2d0; --dim:#8a8472;
+    --gold:#d4a843; --vex:#b48ae0; --crit:#e06c5a; --ok:#7ec97e;
+    --border:#e8e2d0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  }
+  #frame{width:min(760px,96vw); display:flex; flex-direction:column; min-height:100vh; padding:14px 0;}
+  #loc{
+    text-align:center; letter-spacing:.35em; font-size:13px; color:var(--gold);
+    text-transform:uppercase; padding:10px 0 4px; min-height:32px;
+  }
+  #art{
+    text-align:center; font-size:54px; padding:14px 0 6px; min-height:90px;
+    filter:drop-shadow(0 0 18px rgba(212,168,67,.15));
+  }
+  #ticket{
+    display:none; background:#06090d; border:1px solid #1e3a2a; color:#9fd6a8;
+    font-family:'Courier New',monospace; font-size:13.5px; white-space:pre-wrap;
+    padding:18px 22px; margin:10px 0; border-radius:4px; line-height:1.55;
+  }
+  #box{
+    margin-top:auto; background:var(--panel);
+    border:3px solid var(--border); border-radius:10px;
+    padding:18px 22px 16px; min-height:150px; position:relative;
+    box-shadow:0 0 0 3px var(--bg), 0 0 0 4px #3a3525;
+  }
+  #name{
+    position:absolute; top:-16px; left:18px; background:var(--panel);
+    border:2px solid var(--border); border-radius:6px; padding:2px 14px;
+    font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold);
+  }
+  #name.vex{color:var(--vex);} #name.sys{color:var(--ok);}
+  #text{font-size:17.5px; line-height:1.6; animation:fade .25s ease;}
+  #text i{color:var(--dim);} #text b{color:var(--gold); font-weight:600;}
+  #text .vexline{color:var(--vex); letter-spacing:.04em;}
+  @keyframes fade{from{opacity:0; transform:translateY(3px);} to{opacity:1;}}
+  #more{
+    position:absolute; right:16px; bottom:8px; color:var(--gold);
+    animation:bob 1s infinite; cursor:pointer; font-size:15px; user-select:none;
+  }
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
+  #choices{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
+  .ch{
+    background:transparent; border:1px solid #4a4434; color:var(--ink);
+    font-family:inherit; font-size:15.5px; text-align:left; padding:9px 14px;
+    border-radius:6px; cursor:pointer; transition:all .12s;
+  }
+  .ch:hover{border-color:var(--gold); background:#1b1f2c; padding-left:20px;}
+  .ch:before{content:"▸ "; color:var(--gold);}
+  #wrench{
+    position:fixed; right:22px; bottom:24px; width:74px; height:74px; border-radius:50%;
+    background:#231a10; border:2px solid var(--crit); color:var(--crit);
+    font-size:30px; cursor:pointer; display:none; z-index:9;
+    animation:tempt 2.6s ease-in-out infinite;
+    box-shadow:0 0 22px rgba(224,108,90,.25);
+  }
+  #wrench small{display:block; font-size:9px; letter-spacing:.15em; font-family:Georgia,serif;}
+  @keyframes tempt{0%,100%{transform:rotate(0);}88%{transform:rotate(0);}91%{transform:rotate(-9deg);}94%{transform:rotate(7deg);}97%{transform:rotate(-3deg);}}
+  #wrench:hover{background:#3a2014; transform:scale(1.08); animation:none;}
+  .fakebtns{display:flex; gap:10px; justify-content:center; margin:14px 0 4px; flex-wrap:wrap;}
+  .fake{
+    background:#2a1313; border:2px solid var(--crit); color:var(--crit);
+    font-family:'Courier New',monospace; font-size:15px; font-weight:bold;
+    padding:12px 20px; border-radius:6px; cursor:pointer; animation:panic .5s infinite;
+  }
+  @keyframes panic{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+  #toast{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%);
+    background:#1c2416; border:1px solid var(--ok); color:var(--ok);
+    font-family:'Courier New',monospace; font-size:13px; padding:10px 22px;
+    border-radius:4px; display:none; z-index:10; letter-spacing:.1em;
+  }
+  input.nameit{
+    background:#0d0f14; border:1px solid var(--gold); color:var(--ink);
+    font-family:inherit; font-size:16px; padding:8px 12px; border-radius:6px; width:60%;
+  }
+  #foot{text-align:center; color:#3f3b30; font-size:11px; padding:10px 0 2px; letter-spacing:.1em;}
+  #foot a{color:#5a5443;}
+</style>
+</head>
+<body>
+<div id="frame">
+  <div id="loc"></div>
+  <div id="art"></div>
+  <div id="ticket"></div>
+  <div id="box">
+    <div id="name"></div>
+    <div id="text"></div>
+    <div id="more">▼</div>
+    <div id="choices"></div>
+  </div>
+  <div id="foot">THE LAST PATCH — playable vignette draft · <a href="https://github.com/everdale/the-last-patch">repo</a></div>
+</div>
+<button id="wrench" title="It's just in your hand. It's been in your hand the whole time.">🔧<small>BONK</small></button>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const S = {
+  popcorn:false, drawer:false, metPrincess:false,
+  beats:{entrance:false, meteor:false, exchange:false},
+  meteorFails:0, wrenchName:null, bonkFrom:null, path:null
+};
+const beatsDone = () => ['entrance','meteor','exchange'].filter(b=>S.beats[b]).length;
+
+const $ = id => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3200); }
+
+/* ---------- scene data ----------
+   scene = { loc, art, ticket, bonk, steps:[{sp,tx}], choices:[{label,goto,if,do}], special }
+   tx and label may be functions of S. ------------------------------ */
+
+const SC = {
+
+title:{ loc:"", art:"🔧", steps:[
+  {sp:"", tx:"<b>THE LAST PATCH</b><br><i>a playable vignette draft — BUG-031, the Kingdom of Penultima</i><br><br><i>You are the Debugger. You step inside broken games and fix them from within. Click ▼ to advance. Choose when asked. And mind the wrench.</i>"}],
+ choices:[{label:"Open the ticket", goto:"ticket"}]},
+
+ticket:{ loc:"ticket queue", art:"", ticket:
+`BUG-031 ································ CRITICAL
+Game cannot be completed.
+No hero assigned to Final Battle.
+Open: 400 days.
+Notes from reporter: please. someone. anyone.`,
+ steps:[{sp:"", tx:"<i>The world map. You walk toward a border where the grass gets suspiciously tall and the color palette warms by exactly one JRPG. The screen pinches into a battle-swirl.</i>"}],
+ choices:[{label:"Cross over", goto:"road"}]},
+
+road:{ loc:"the road to penultima", art:"🌾", steps:[
+  {sp:"", tx:"<i>You arrive mid-stagger, hands on knees.</i>"},
+  {sp:"DEBUGGER", tx:"I hate the swirl."},
+  {sp:"", tx:"<i>Tall grass. A save crystal hums a four-note arpeggio at itself. Something bounces toward you at speed — a SLIME, rearing up to attack — and stops itself mid-air. It settles down, embarrassed.</i>"},
+  {sp:"SLIME", tx:"Sorry. Force of habit. We're saving it for tomorrow."},
+  {sp:"DEBUGGER", tx:"Saving what?"},
+  {sp:"SLIME", tx:"<i>(with enormous reverence)</i> Everything."},
+  {sp:"", tx:"<i>The slime bows — a slime bowing is just a slime leaning — and adds, politely, the way you'd say \"good morning\":</i>"},
+  {sp:"SLIME", tx:"Tomorrow's the day."},
+  {sp:"", tx:"<i>It bounces off. Every creature in the grass is queueing. A small sign: \"ENCOUNTERS RESUME AFTER THE FINAL BATTLE. THANK YOU FOR YOUR PATIENCE.\"</i>"}],
+ choices:[
+  {label:"Examine the save crystal", goto:"crystal"},
+  {label:"Walk into town", goto:"square"}]},
+
+crystal:{ loc:"the road to penultima", art:"💎", steps:[
+  {sp:"", tx:"<i>The kingdom autosaves at dusk. The save file is named <b>the_night_before</b> and has 146,000 hours on it.</i>"}],
+ choices:[{label:"Walk into town", goto:"square"}]},
+
+square:{ loc:"penultima — town square", art:"🏰", steps:[
+  {sp:"", tx:s=>"<i>Banners everywhere: \"FINAL BATTLE — TOMORROW!\" The banners are very old. Some are patched with newer fabric that also says TOMORROW. The clocktower has one hand. Where the 12 should be, a single word: <b>EVE</b>.</i>"},
+  {sp:"", tx:"<i>Townsfolk greet each other across the square — \"Tomorrow's the day.\" \"Tomorrow's the day.\" — the way you'd say \"lovely weather.\" Nobody is being ironic. Nobody has ever been ironic here.</i>"}],
+ choices:[
+  {label:"The souvenir stall", goto:"merchant"},
+  {label:"The noticeboard", goto:"board"},
+  {label:"The guard in half a wyvern costume", goto:"dennis"},
+  {label:"Enter the castle", goto:"throne"}]},
+
+merchant:{ loc:"the souvenir stall", art:"👕", steps:[
+  {sp:"MERCHANT", tx:"Tomorrow's the day! Foam sword? Meteor insurance?"},
+  {sp:"", tx:"<i>Shirts: \"I SURVIVED THE FINAL BATTLE\" — amended underneath in smaller and smaller print: (DRESS REHEARSAL) (ATTENDED) (HEARD ABOUT).</i>"},
+  {sp:"DEBUGGER", tx:"Has the meteor ever hit anyone?"},
+  {sp:"MERCHANT", tx:"Never had to pay out once. Our record speaks for itself."}],
+ choices:[
+  {label:"Buy popcorn", goto:"popcorn", if:s=>!s.popcorn},
+  {label:"Back to the square", goto:"square2"}]},
+
+popcorn:{ loc:"the souvenir stall", art:"🍿", steps:[
+  {sp:"MERCHANT", tx:"Ah — you'll be wanting the Princess's usual. One popcorn, extra salt, no hope."},
+  {sp:"DEBUGGER", tx:"No hope?"},
+  {sp:"MERCHANT", tx:"It's a flavor here."},
+  {sp:"", tx:"<i>Popcorn acquired.</i>"}],
+ choices:[{label:"Back to the square", goto:"square2", do:s=>{s.popcorn=true;}}]},
+
+board:{ loc:"the noticeboard", art:"📋", steps:[
+  {sp:"", tx:"<i>Posted like ferry times:</i><br><br>ROYAL ABDUCTIONS — DAILY<br>&nbsp;&nbsp;09:00 (matinee)<br>&nbsp;&nbsp;14:30<br>PLEASE DO NOT FEED THE WYVERN.<br>THE WYVERN IS DENNIS."}],
+ choices:[{label:"Back to the square", goto:"square2"}]},
+
+dennis:{ loc:"the fountain", art:"🛡️", steps:[
+  {sp:"", tx:"<i>A castle guard on break: bottom half wyvern costume, top half regular armor, visor up, eating lunch. This is DENNIS.</i>"},
+  {sp:"DENNIS", tx:"Tomorrow's the day!"},
+  {sp:"DEBUGGER", tx:"You're the wyvern."},
+  {sp:"DENNIS", tx:"I'm <i>also</i> second meteor technician. <i>(beams)</i> And I do a faint. In the show. When the hero lands the first blow, a guard faints from sheer awe — that's me. Full armor. Three stages. I've been rehearsing the faint for nine years."},
+  {sp:"DEBUGGER", tx:"What are the stages?"},
+  {sp:"DENNIS", tx:"Disbelief. Acceptance. <i>(reverent pause)</i> Clatter."}],
+ choices:[
+  {label:"Ask him to demonstrate", goto:"faint"},
+  {label:"Back to the square", goto:"square2"}]},
+
+faint:{ loc:"the fountain", art:"💫", steps:[
+  {sp:"", tx:"<i>He demonstrates. It is genuinely excellent. Disbelief — a hand to the breastplate. Acceptance — the knees discover doubt. Clatter — a sound like a kitchen falling downstairs, in waves.</i>"},
+  {sp:"", tx:"<i>He takes a moment to get back up — the armor — and waves off help.</i>"},
+  {sp:"DENNIS", tx:"Part of it. Part of it."}],
+ choices:[{label:"Back to the square", goto:"square2"}]},
+
+square2:{ loc:"penultima — town square", art:"🏰", steps:[
+  {sp:"", tx:"<i>The castle gates stand wide open. A sign: \"REHEARSALS OPEN TO THE PUBLIC. ATTENDANCE IS A CIVIC HONOR. (MANDATORY.)\"</i>"}],
+ choices:[
+  {label:"The souvenir stall", goto:"merchant"},
+  {label:"The noticeboard", goto:"board"},
+  {label:"Dennis", goto:"dennis"},
+  {label:"Enter the castle", goto:"throne"}]},
+
+/* ---------------- THRONE ROOM ---------------- */
+
+throne:{ loc:"the throne room", art:"🦇", steps:[
+  {sp:"", tx:"<i>Vast. Torches. A throne like a fist. And rising from behind it, a wall of black wings unfolds, blotting out the torchlight—</i>"},
+  {sp:"VEXMOURNE IX", tx:"<span class='vexline'>MORTAL. YOU DARE APPROACH THE—</span>"},
+  {sp:"", tx:"<i>(stops. squints.)</i>"},
+  {sp:"VEXMOURNE", tx:"Where's your sword?"},
+  {sp:"DEBUGGER", tx:"I have a wrench. I'm here about the ticket."},
+  {sp:"VEXMOURNE", tx:"The hero enters from the <i>east</i> door. At <i>dawn</i>. With the light behind him. We have blocked this scene for four hundred years. <i>(the wings sag, one feather at a time)</i> You're not him."},
+  {sp:"", tx:"<i>He sits down on the steps of his own throne and produces a binder. The binder is labeled <b>FINAL BATTLE — DO NOT LOSE</b>, is held together with tape, and is annotated in three generations of handwriting. His grandfather's notes are in blood. His father's are in red ink. His are in gel pen, with the anxious little stars of a student who studied very hard.</i>"},
+  {sp:"VEXMOURNE", tx:"Four hundred years of rehearsal. My grandfather built this fight. My father refined it. I have given it my <i>life</i>. And two days before my debut, the hero— <i>(through his teeth)</i> —transferred. To a <i>metroidvania</i>."},
+  {sp:"", tx:"<i>A long pause. Somewhere above, the sound of someone eating popcorn.</i>"},
+  {sp:"VEXMOURNE", tx:"<i>(without looking up)</i> Good morning, Princess."},
+  {sp:"PRINCESS", tx:"<i>(from a balcony, flatly)</i> Tomorrow's the day."},
+  {sp:"VEXMOURNE", tx:"You came about the ticket. Fine. There is one fix. The Final Battle must be performed, and there is no hero. You hold... <i>(he looks at the wrench the way a knight looks at a spork)</i> ...a tool. You will learn the choreography. I will teach you myself."},
+  {sp:"DEBUGGER", tx:"How long does the choreography take to learn?"},
+  {sp:"VEXMOURNE", tx:"My father took thirty years to master the third act."},
+  {sp:"DEBUGGER", tx:"I was thinking more like this afternoon."},
+  {sp:"VEXMOURNE", tx:"<i>(opening the binder with the tenderness of a man opening a reliquary)</i> Then we start with the door."},
+  {sp:"", tx:"<i>From this moment on, the wrench is just... in your hand. The way it has been the whole game. Nobody mentions it.</i>"}],
+ choices:[{label:"Begin rehearsals", goto:"hub"}], bonk:false},
+
+hub:{ loc:"rehearsals", art:"🎭", bonk:true, steps:[
+  {sp:"", tx:s=>{
+    const n=beatsDone();
+    if(n===0) return "<i>The throne room is a stage and always was. Vexmourne waits, binder open. Three beats to learn.</i>";
+    if(n<3) return "<i>"+n+" of 3 beats learned. Vexmourne makes a small anxious star in the binder next to your name.</i>";
+    return "<i>All three beats learned. Vexmourne closes the binder and looks at the east door for a long moment. Dawn is in a few hours. The show could happen. The show could actually happen.</i>";}}],
+ choices:[
+  {label:"Beat 1 — The Entrance", goto:"entrance", if:s=>!s.beats.entrance},
+  {label:"Beat 2 — The Meteor", goto:"meteor", if:s=>!s.beats.meteor},
+  {label:"Beat 3 — The Exchange", goto:"exchange", if:s=>!s.beats.exchange},
+  {label:"Snoop in his desk while he fetches the prop sword", goto:"desk", if:s=>!s.drawer && beatsDone()>=1},
+  {label:s=>S.popcorn?"Visit the Princess's balcony (bring popcorn)":"Visit the Princess's balcony", goto:"tower", if:s=>!s.metPrincess},
+  {label:"Peek into the hero's dressing room", goto:"dressing", if:s=>!s.dressing},
+  {label:"⭐ Perform the Final Battle", goto:"showA", if:s=>beatsDone()===3}]},
+
+/* ---- beats ---- */
+
+entrance:{ loc:"beat 1 — the entrance", art:"🚪", bonk:true, steps:[
+  {sp:"", tx:"<i>The east door. It sticks — four hundred days unopened, and it was only ever opened by one man. You shoulder it open on the third try while Vexmourne watches with his arms folded and his wings folded harder.</i>"},
+  {sp:"VEXMOURNE", tx:"Now: the walk. Enter, and walk the marked line to center stage."}],
+ choices:[
+  {label:"Walk heroically", goto:"walkfail"},
+  {label:"Walk humbly", goto:"walkfail"},
+  {label:"Walk normally", goto:"walkfail"}]},
+
+walkfail:{ loc:"beat 1 — the entrance", art:"🚪", bonk:true, steps:[
+  {sp:"VEXMOURNE", tx:"Again. The hero walks like he owns nothing and deserves everything. You walk like you're billing hourly."},
+  {sp:"DEBUGGER", tx:"I am billing hourly."},
+  {sp:"VEXMOURNE", tx:"<i>(closing his eyes)</i> Dennis. The dawn."},
+  {sp:"", tx:"<i>Up in the rigging, Dennis — in his wyvern bottoms — swivels an enormous polished mirror-lamp. Artificial dawn floods the east door.</i>"},
+  {sp:"VEXMOURNE", tx:"We rehearse with false dawn. The real one is for the show."},
+  {sp:"", tx:"<i>You try again with the light behind you, walking like you own nothing and deserve everything, or near enough. Vexmourne watches the whole way. Then he nods, once, and makes a note in gel pen.</i>"},
+  {sp:"", tx:"<b>Beat 1 learned.</b>"}],
+ choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.beats.entrance=true;}}]},
+
+meteor:{ loc:"beat 2 — the meteor", art:"☄️", bonk:true, steps:[
+  {sp:"", tx:"<i>Center stage. Worn into the stone: two foot-shaped depressions. Four hundred years of heroes' feet, on this exact spot.</i>"},
+  {sp:"VEXMOURNE", tx:"Stand in the feet."},
+  {sp:"", tx:"<i>High above, Dennis loads the rehearsal meteor — a boulder on a guided rail, scorched from centuries of service.</i>"},
+  {sp:"VEXMOURNE", tx:"The meteor has missed the hero's left shoulder by one handspan in every performance for four centuries. Rehearsed missing is the most difficult missing there is. Your role is simple. You do not move. You do not flinch. You trust the work."}],
+ choices:[{label:"Take your mark", goto:"meteorGame"}]},
+
+meteorGame:{ special:"meteor"},
+
+meteorWin:{ loc:"beat 2 — the meteor", art:"☄️", bonk:true, steps:[
+  {sp:"", tx:"<i>The meteor screams past your left shoulder. One handspan. The wind of it parts your hair. You did not move. You trusted the work.</i>"},
+  {sp:"VEXMOURNE", tx:"<i>(quietly, to the binder)</i> ...Acceptable."},
+  {sp:"", tx:"<i>That is the highest praise recorded in three generations of marginalia.</i><br><br><b>Beat 2 learned.</b>"}],
+ choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.beats.meteor=true;}}]},
+
+exchange:{ loc:"beat 3 — the exchange", art:"🎼", bonk:true, steps:[
+  {sp:"", tx:"<i>Vexmourne takes his mark on the throne steps and becomes — instantly, completely — the Dreadlord. Wings out. Voice like a landslide. It is the real thing, and it is magnificent, and there is no one to be magnificent at except a contractor holding a wrench.</i>"},
+  {sp:"VEXMOURNE", tx:"<span class='vexline'>KNEEL, LITTLE LIGHT. THE SUN ITSELF KNOCKED ONCE AT MY GATES, AND I TAUGHT IT TO WAIT—</span>"},
+  {sp:"", tx:"<i>The binder dictates your interjection. It must land on the cue: the third pillar cracks. (The pillar is pre-scored. The crack is operated by Dennis, who has run silently down from the rigging and is visibly out of breath.)</i>"},
+  {sp:"", tx:"<i>The pillar cracks. Your line—</i>"}],
+ choices:[
+  {label:"\"Your reign ends at dawn, Dreadlord. The morning does not negotiate.\"", goto:"exchangeWin"},
+  {label:"\"Your reign ends at dawn-ish.\"", goto:"exchangeFail1"},
+  {label:"\"I'm here about the ticket.\"", goto:"exchangeFail2"}]},
+
+exchangeFail1:{ loc:"beat 3 — the exchange", art:"🎼", bonk:true, steps:[
+  {sp:"", tx:"<i>Vexmourne breaks character and grips the bridge of his nose, where a nose would be.</i>"},
+  {sp:"VEXMOURNE", tx:"The morning. Does not. NEGOTIATE. It is the best line we have. My grandfather wrote it the night before he died. <i>(beat)</i> Say it like you've slept."},
+  {sp:"", tx:"<i>The pillar is re-scored. Dennis runs back up to the rigging, then back down. The pillar cracks. Again—</i>"}],
+ choices:[
+  {label:"\"Your reign ends at dawn, Dreadlord. The morning does not negotiate.\"", goto:"exchangeWin"},
+  {label:"\"I'm here about the ticket.\"", goto:"exchangeFail2"}]},
+
+exchangeFail2:{ loc:"beat 3 — the exchange", art:"🎼", bonk:true, steps:[
+  {sp:"", tx:"<i>The bard plays a single wrong note. From the balcony, the sound of chewing stops — for the first time. Then resumes.</i>"},
+  {sp:"VEXMOURNE", tx:"<i>(wounded, in a quiet way)</i> We do not improvise here. Nobody has ever improvised here."},
+  {sp:"", tx:"<i>The pillar is re-scored. The pillar cracks. Again—</i>"}],
+ choices:[
+  {label:"\"Your reign ends at dawn, Dreadlord. The morning does not negotiate.\"", goto:"exchangeWin"}]},
+
+exchangeWin:{ loc:"beat 3 — the exchange", art:"🎼", bonk:true, steps:[
+  {sp:"", tx:"<i>The line lands on the crack of the pillar. The bard hits the chord. For one full second the room is exactly what three generations dreamed it would be, and everyone in it knows.</i>"},
+  {sp:"VEXMOURNE", tx:"<i>(hoarse)</i> ...From the top tomorrow. With the real dawn."},
+  {sp:"", tx:"<b>Beat 3 learned.</b>"}],
+ choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.beats.exchange=true;}}]},
+
+/* ---- optional rooms ---- */
+
+desk:{ loc:"his desk", art:"🗄️", bonk:false, steps:[
+  {sp:"VEXMOURNE", tx:"<i>(leaving)</i> I will fetch the prop sword. The real one is also a prop. It's complicated."},
+  {sp:"", tx:"<i>You are alone with his desk. The drawer is not locked. It has never needed to be.</i>"},
+  {sp:"", tx:"<i>Inside: four hundred drafts of the same ticket.</i><br><br><i>Draft 1, formal, dated 400 days ago: \"TO THE DEPARTMENT OF REALITY: It has come to my attention that the position of Hero remains unfilled—\"</i>"},
+  {sp:"", tx:"<i>Draft ~200, bargaining: \"I will accept a hero with no experience. I will train them personally. I will accept a tall child.\"</i>"},
+  {sp:"", tx:"<i>The last one is not a draft. It is a carbon copy of the ticket that was actually sent. Gel pen:</i><br><br>please. someone. anyone."},
+  {sp:"", tx:"<i>Underneath all of it, a job posting that was never put up:</i><br><br>HERO WANTED.<br>Must enter from the east.<br>Everything else is teachable."},
+  {sp:"", tx:"<i>You close the drawer yourself.</i>"}],
+ choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.drawer=true;}}]},
+
+tower:{ loc:"the princess's balcony", art:"👑", bonk:false,
+ steps:[{sp:"", tx:s=> s.popcorn ?
+   "<i>Opera glasses, a rubric, a mountain of popcorn boxes, and PRINCESS GRENADINE, who has the thousand-yard stare of a woman who has seen the same play fourteen thousand times. You hold out the popcorn — extra salt, no hope. She gestures to the chair next to her. It's the friendliest thing anyone in this kingdom has done.</i>" :
+   "<i>The Princess does not look up from the rehearsal below. The popcorn supply on her table is dwindling. You get the sense an offering is customary.</i>"}],
+ choices:[
+  {label:"Sit down", goto:"tower2", if:s=>s.popcorn},
+  {label:"Go buy popcorn first", goto:"merchant", if:s=>!s.popcorn},
+  {label:"Back to rehearsals", goto:"hub"}]},
+
+tower2:{ loc:"the princess's balcony", art:"👑", bonk:false, steps:[
+  {sp:"GRENADINE", tx:"Eleven thousand abductions. I have a punch card."},
+  {sp:"DEBUGGER", tx:"Do you ever get to do anything else?"},
+  {sp:"GRENADINE", tx:"I rate them. <i>(holds up scorecards, fanned, like a weapon)</i> I built a rubric. Menace, originality, lift technique. I thought it would make them try new things."},
+  {sp:"DEBUGGER", tx:"Did it?"},
+  {sp:"GRENADINE", tx:"They rehearse <i>to the rubric</i> now. I am the only person in history to critic-proof herself out of ever being surprised again."},
+  {sp:"GRENADINE", tx:"My highest score is a 6.5. Forty years ago a pigeon got into the throne room during the second act. Nobody had blocked it. Nobody knew what it would do. <i>(quietly, the way other people say a lover's name)</i> Nobody knew what <i>anything</i> would do."},
+  {sp:"", tx:"<i>On a ribbon at her neck: a small medallion. The Royal Seal of Skipping — royalty may be excused from any performance. She has never once used it.</i>"},
+  {sp:"GRENADINE", tx:"If I leave, and something finally happens, I would die."}],
+ choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.metPrincess=true;}}]},
+
+dressing:{ loc:"the hero's dressing room", art:"🪞", bonk:false, steps:[
+  {sp:"", tx:"<i>Behind the east door: unlocked, untouched for 400 days. A costume on a stand. A fern. A note taped to the mirror:</i>"},
+  {sp:"", tx:"<i>\"Gone where the doors only open one way.<br>Don't water the fern. It's plastic. It was always plastic.<br>— G.\"</i>"},
+  {sp:"", tx:"<i>The fern has fresh water stains beneath it. On the shelf, a watering can, polished, engraved: <b>V. IX</b>.</i>"}],
+ choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.dressing=true;}}]},
+
+/* ---------------- PATH A — THE PERFORMANCE ---------------- */
+
+showA:{ loc:"opening night (morning)", art:"🌅", bonk:true, steps:[
+  {sp:"", tx:"<i>Real dawn. The throne room is packed — attendance is a civic honor (mandatory). Programs are handed out. The program includes the audience's lines:</i><br><br>BEAT 14: GASP (ALL)<br>BEAT 22: MURMUR, RISING<br>FINALE: APPLAUSE (STANDING)<br>INTERMISSION: NONE. THE BATTLE RUNS NINE MINUTES."},
+  {sp:"", tx:"<i>The east door opens on the first pull — Dennis oiled it at 4 a.m. (\"it was an honor,\" he tells you later, voice breaking). You walk like you own nothing and deserve everything. The meteor misses by a handspan. The morning does not negotiate.</i>"},
+  {sp:"", tx:"<i>And Vexmourne is — transcendent. Four hundred years arrive at once. For nine minutes he gets to be exactly what three generations built him to be. The audience gasps where the paper says GASP. Dennis's faint — Disbelief, Acceptance, Clatter — gets its own round of applause.</i>"},
+  {sp:"", tx:"<i>The final blow — choreographed, missing by a handspan, like everything here. Vexmourne falls the way mountains would like to. On the floor, his eyes are open, looking at the ceiling. The audience can't see his face from there. Only you can.</i>"},
+  {sp:"", tx:"<i>The hall waits. The Princess stands. Everyone turns. She holds up a card:</i><br><br><b style='font-size:34px'>6.5</b>"},
+  {sp:"GRENADINE", tx:"The delivery of the hero's line was the worst I have witnessed in fourteen thousand performances. Genuinely, athletically terrible. I had no idea what he would say next. <i>(sits back down)</i> Ties the pigeon."}],
+ choices:[{label:"The morning after", goto:"afterA", do:s=>{s.path='A';}}]},
+
+afterA:{ loc:"the morning after", art:"🕰️", bonk:false, steps:[
+  {sp:"", tx:"<i>The square. Silence. The clocktower's one hand points at EVE, which is now wrong, and everyone walks a little too carefully, the way you do in a house where something has died. The merchant stands at his stall, surrounded by ten thousand shirts that say TOMORROW.</i>"},
+  {sp:"MERCHANT", tx:"<i>(to himself, testing it)</i> ...Yesterday was the day?"},
+  {sp:"", tx:"<i>It doesn't work. He says nothing else. There is nothing else here to say.</i>"},
+  {sp:"", tx:"<i>By afternoon the kingdom finds its answer, and it is the most Penultima answer possible: they will do it again. Daily. The Final Battle (Daily, Dawn, Free For Citizens). Dennis is cast as the permanent hero. He weeps directly onto his contract. The ink runs. They frame it anyway.</i>"},
+  {sp:"", tx:s=>"<i>Your last visit to the throne room: Vexmourne on the steps, binder open, adding notes in a fourth handwriting — his own gel pen, but the entries are about YOU. Your blocking. Your flubbed line. The understudy notes of a man preparing to do this forever.</i>"+(s.drawer?"<br><br><i>The drawer with four hundred drafts sits under his elbow, closed. You know what's in it. He knows you know. Neither of you says anything.</i>":"")},
+  {sp:"VEXMOURNE", tx:"<i>(not unkindly, not looking up)</i> Same time tomorrow."}],
+ choices:[{label:"Close the ticket", goto:"closeA"}]},
+
+closeA:{ loc:"ticket queue", art:"", ticket:
+`BUG-031 ································ CLOSED
+Resolution: WORKING AS INTENDED.
+Note: hero role filled internally.
+      Costume budget doubled.
+Final Battle now recurs daily.
+Status: BY DESIGN.`,
+ steps:[{sp:"", tx:"<i>On your way out of the kingdom, the Princess meets you at the tower stairs. She takes off the medallion — the Royal Seal of Skipping — and presses it into your hand.</i>"},
+  {sp:"GRENADINE", tx:"It's daily now. <i>(a laugh with no floor under it)</i> Someone should get to leave."}],
+ choices:[{label:"Accept", goto:"powerA"}]},
+
+powerA:{ loc:"", art:"⏩", ticket:
+`POWER EARNED — CUTSCENE SKIP
+Hold ⏩ near anyone speaking.
+Time will pass for them and not for you.
+They will know.`,
+ steps:[{sp:"", tx:"<i>Weeks later, in other lands, the letters begin to find you.</i>"}],
+ choices:[{label:"Read them", goto:"lettersA"}]},
+
+lettersA:{ loc:"the letters", art:"✉️", bonk:false, steps:[
+  {sp:"LETTER I", tx:"Performance #12. Dennis improves weekly. The crowd gasped 4% early on beat 14. It was dealt with.<br>— V. IX"},
+  {sp:"LETTER II", tx:"Performance #119. The Princess no longer attends. Her chair is maintained.<br>— V."},
+  {sp:"LETTER III", tx:"<i>(small handwriting, no seal)</i><br>Performance #200 tomorrow.<br>Is there another way to close a ticket? Asking for myself."}],
+ choices:[{label:"…", goto:"endA"}]},
+
+endA:{ loc:"", art:"🔧", steps:[
+  {sp:"", tx:"<b>BUG-031: CLOSED.</b><br><br><i>You did the job. The show goes on. The show always goes on. That's the thing about shows here.</i><br><br><i>Somewhere, a drawer holds four hundred drafts of a ticket, and a man with wings is still waiting for someone to do the thing you didn't do.</i>"},
+  {sp:"", tx:"<i>— end of vignette (Path A: The Performance) —</i><br><br><i>There was another way. There was always another way. It was in your hand the whole time.</i>"}],
+ choices:[{label:"Play again (try the wrench)", goto:"RESTART"}]},
+
+/* ---------------- PATH B — THE BONK ---------------- */
+
+bonk:{ loc:"…", art:"🔧", bonk:false, steps:[
+  {sp:"", tx:s=>({
+    entrance:"<i>He is showing you the door — literally, patiently, four hundred years of patience folded behind him — when the wrench lands.</i>",
+    walkfail:"<i>He is mid-note — \"the hero walks like he owns nothing\" — when the wrench lands. You walk like you're billing hourly. You bonk like it too.</i>",
+    meteorRetry:"<i>Dennis is still resetting the rail when you cross the stage and — bonk. For real.</i>",
+    meteorMercy:"<i>The meteor is still swinging gently on its rope when you cross the stage and — bonk. For real.</i>",
+    meteor:"<i>You step out of the hero's footprints, cross the stage, and the first real blow in the history of the Final Battle is delivered from the hero's own mark.</i>",
+    meteorWin:"<i>You step off the mark, cross the stage, and — bonk. For real.</i>",
+    exchange:"<i>Mid-monologue. Wings at full extension. Voice at full landslide. And you just — bonk. For real.</i>",
+    exchangeFail1:"<i>Mid-note-giving session — bonk. For real.</i>",
+    exchangeFail2:"<i>Mid-monologue — bonk. For real.</i>",
+    exchangeWin:"<i>In the perfect ringing silence after the chord — bonk. For real.</i>",
+    hub:"<i>No warning. No reason. No prompt ever suggested this. You walk up to the Dreadlord of Penultima and — bonk. For real.</i>",
+    showA:"<i>Opening night. Real dawn. A full house, programs in hand, GASP scheduled for beat 14 — and you go off-script in the most off-script way there has ever been. Bonk. For real.</i>"
+  })[s.bonkFrom] || "<i>Bonk. For real.</i>"},
+  {sp:"", tx:"<i>The music doesn't stop; the <b>bard</b> stops, physically, mid-strum, frozen like a paused video. Dennis faints — no stages, no choreography, just straight down, loudly, in full armor, the worst faint of his life. And Vexmourne touches his cheek like it's the first thing that's ever happened to him.</i>"},
+  {sp:"VEXMOURNE", tx:"<i>(very small)</i> You hit me. Nobody has ever—"},
+  {sp:"", tx:"<i>(eyes shining, turning to the portrait wall — grandfather in oils, father in oils, his own portrait still a charcoal sketch, because they weren't sure he'd earned oils yet)</i>"},
+  {sp:"VEXMOURNE", tx:"<span class='vexline'>DAD. DAD, DID YOU SEE—</span>"},
+  {sp:"", tx:"<i>(catches himself. clears throat. voice like a landslide.)</i>"},
+  {sp:"VEXMOURNE", tx:"<span class='vexline'>I MEAN. INSOLENCE.</span>"},
+  {sp:"", tx:s=>s.drawer?"<i>He looks at the wrench, then at you, and says, almost a whisper: \"You read the drawer.\" It is not a question, and he does not seem angry.</i>":"<i>He looks at the wrench for a long moment, like it has answered a letter he never sent.</i>"},
+  {sp:"", tx:"<i>His wings rise — but differently now. Not blocking. Not blotting out torchlight on schedule. Rising the way weather does. He kicks the binder across the floor. Four hundred years of tape and gel pen slide under the throne.</i>"},
+  {sp:"VEXMOURNE", tx:"No choreography. No binder. No marks. Dreadlord Vexmourne the Ninth would like to fight you. <i>(beat)</i> Please."}],
+ choices:[{label:"The first real fight in 400 years", goto:"fight1", do:s=>{s.path='B';}}]},
+
+fight1:{ loc:"the real fight — phase 1", art:"⚔️", bonk:false, steps:[
+  {sp:"", tx:"<i>It is also the first nine minutes of pure joy in Vexmourne's life, and he is crying, and he is trying to kill you, and both of these are sincere.</i>"},
+  {sp:"", tx:s=>beatsDone()>0?
+    "<i>His body knows only the choreography. Every attack is a rehearsal beat at full speed and full sincerity — built, in his bones, to miss the hero's marks by one handspan. You know where the marks are. You rehearsed them.</i>":
+    "<i>His attacks come fast and you realize, dodging by pure luck, that they all seem to miss certain spots on the floor — spots you might know, if you'd bothered to attend a single rehearsal.</i>"}],
+ choices:[
+  {label:"Stand on the hero's marks", goto:"fight1b", if:s=>beatsDone()>0},
+  {label:"Guess where the marks are", goto:"fight1guess", if:s=>beatsDone()===0},
+  {label:"Dodge freely", goto:"fight1hit"}]},
+
+fight1hit:{ loc:"the real fight — phase 1", art:"💥", steps:[
+  {sp:"", tx:"<i>You dodge like a person. He fights like four centuries. A wing the size of a sail swats you across the stage, through the third pillar (pre-scored — it was always going to crack today, one way or another).</i>"},
+  {sp:"VEXMOURNE", tx:"<i>(calling across the hall, concerned and delighted at once)</i> ARE YOU HURT? DON'T ANSWER. WE'RE NEMESES."}],
+ choices:[
+  {label:"Get up. Stand on the marks.", goto:"fight1b", if:s=>beatsDone()>0},
+  {label:"Get up. Find the worn footprints.", goto:"fight1b"}]},
+
+fight1guess:{ loc:"the real fight — phase 1", art:"💥", steps:[
+  {sp:"", tx:"<i>You never learned the blocking. The achievement for this is called an apology. You find the worn footprints the hard way: by being missed near them, twice, and hit everywhere else, repeatedly.</i>"},
+  {sp:"", tx:"<i>(After your third knockdown, Dennis — recovered, loyal to no script now — starts holding up cue cards from the wings. The first one says: LEFT.)</i>"}],
+ choices:[{label:"Stand where Dennis says", goto:"fight1b"}]},
+
+fight1b:{ loc:"the real fight — phase 1", art:"⚔️", steps:[
+  {sp:"", tx:"<i>You move mark to mark. Four hundred years of stagecraft bends every blow around you by exactly one handspan.</i>"},
+  {sp:"VEXMOURNE", tx:"<span class='vexline'>GET OFF YOUR MARK.</span>"},
+  {sp:"DEBUGGER", tx:"It's a good mark!"},
+  {sp:"VEXMOURNE", tx:"<i>(delighted, furious, mid-leap)</i> <span class='vexline'>FOUR HUNDRED YEARS OF STAGECRAFT AND YOU USE IT TO <i>CHEAT</i>—</span>"},
+  {sp:"", tx:"<i>He attempts to improvise a battle cry. He has never improvised anything.</i>"},
+  {sp:"VEXMOURNE", tx:"<span class='vexline'>YOUR... FACE. IS BAD.</span>"},
+  {sp:"", tx:"<i>(beat. he lands. genuine anguish:)</i>"},
+  {sp:"VEXMOURNE", tx:"That was my first one. Pretend you didn't hear it."}],
+ choices:[{label:"Phase 2", goto:"fight2"}]},
+
+fight2:{ loc:"the real fight — phase 2", art:"☄️", steps:[
+  {sp:"", tx:"<i>He orders the meteor — the REAL call, the one from the sealed fifth act. Dennis, devastated to be working during history, loads it. A familiar prompt appears—</i>"},
+  {sp:"", tx:"<s style='color:#8a8472'>DO NOT PRESS ANYTHING</s><br><b style='color:#e06c5a'>PRESS SOMETHING. ANYTHING. NOW.</b>"}],
+ choices:[], special:"meteor2"},
+
+fight3:{ loc:"the real fight — phase 3", art:"🌅", steps:[
+  {sp:"", tx:"<i>You threw yourself clear. The hero's footprints — the safest spot in four hundred years — are a crater.</i>"},
+  {sp:"", tx:"<i>And then Vexmourne disengages, strides to the east door, exits — and re-enters. Through the east door. False dawn behind him (Dennis, sobbing, operating the mirror-lamp with one hand and his halberd with the other). Doing the hero's walk.</i>"},
+  {sp:"", tx:"<i>He has waited four hundred years to try the other part. He plays both roles of the Final Battle at once, swapping mid-stage, and it is the stupidest, most beautiful thing the kingdom has ever seen.</i>"},
+  {sp:"", tx:"<i>From the balcony: the sound of chewing stops.</i>"}],
+ choices:[{label:"The last meteor call", goto:"catch"}]},
+
+catch:{ loc:"the catch", art:"🤲", steps:[
+  {sp:"", tx:"<i>It goes wrong. The real rig was never tested — why would it be — and the rail shears. The meteor leaves its line and falls, not at you: at <b>Dennis</b>, frozen at the pillar — a man who rehearsed a faint for nine years and now, facing the real thing, the actual once-in-four-centuries thing, forgets to do it. He just stands there. Blinking.</i>"},
+  {sp:"", tx:"<i>Vexmourne moves without thinking. Four hundred years of rehearsal, three generations, fourteen thousand performances of controlled, precise, loving failure — and he catches the meteor's path and turns it, exactly, one handspan past Dennis's left shoulder.</i>"},
+  {sp:"", tx:"<i>Stone dust. Silence. Vexmourne looks at his own hands.</i>"},
+  {sp:"VEXMOURNE", tx:"I missed. <i>(beat)</i> On purpose. For real."},
+  {sp:"", tx:"<i>And then — from the gallery — the music changes. The bard has broken the seal on the last page of the score: the fifth movement of the Final Battle theme, written four hundred years ago, never once performed, because the fight never finished for real. He plays the ending. The whole kingdom hears, for the first time, that their song had one.</i>"},
+  {sp:"", tx:"<i>The Princess stands. The popcorn falls. She holds up — nothing. Both hands empty.</i>"},
+  {sp:"GRENADINE", tx:"<i>(to herself)</i> It's not on the rubric."},
+  {sp:"", tx:"<i>She applauds. One person, in a stunned hall, clapping like it's a fight she's winning.</i>"}],
+ choices:[{label:"The bill", goto:"bill"}]},
+
+bill:{ loc:"the bill", art:"🪧", steps:[
+  {sp:"", tx:"<i>The kingdom does not throw a parade.</i>"},
+  {sp:"", tx:"<i>The Final Battle is over, which means the Eve is over, which means the tour groups, the abduction schedule, the meteor insurance, the foam swords, the 9:00 matinee, the entire economy and culture and religion of Penultima just closed in one afternoon — because some contractor hit the Dreadlord with a wrench.</i>"},
+  {sp:"", tx:"<i>Walking back through the square: conversations stop. The innkeeper turns the WELCOME sign around as you pass.</i>"},
+  {sp:"", tx:"<i>Only the merchant waves you over, urgently, conspiratorially. His stall is empty. Sold out. He flips up one last shirt: \"I SURVIVED THE FINAL BATTLE\" — no parentheses.</i>"},
+  {sp:"MERCHANT", tx:"<i>(whispering)</i> True now. Moved the whole stock in an hour. <i>(pressing the shirt into your hands, glancing at the glaring town)</i> Don't tell anyone I said thank you."}],
+ choices:[{label:"Close the ticket", goto:"closeB"}]},
+
+closeB:{ loc:"ticket queue", art:"", ticket:
+`BUG-031 ································ CLOSED
+Resolution: FIXED. Hero no longer required.
+            The fight became real.
+
+BUG-047 ································ OPENED
+Dreadlord has discovered sincerity.
+Severity: UNKNOWN.
+Nobody has ever filed this before.`,
+ steps:[
+  {sp:"", tx:"<i>At the tower stairs, the Princess is already waiting, holding out the medallion — the Royal Seal of Skipping.</i>"},
+  {sp:"DEBUGGER", tx:"Don't you need it?"},
+  {sp:"GRENADINE", tx:"<i>(looking back toward the throne room, where a Dreadlord is teaching a bard to improvise)</i> I want to watch now."}],
+ choices:[{label:"Accept", goto:"powerB"}]},
+
+powerB:{ loc:"", art:"⏩", ticket:
+`POWER EARNED — CUTSCENE SKIP
+Hold ⏩ near anyone speaking.
+Time will pass for them and not for you.
+They will know.`,
+ steps:[{sp:"", tx:"<i>Weeks later, in other lands, the letters begin to find you — delivered by increasingly improbable couriers.</i>"}],
+ choices:[{label:"Read them", goto:"lettersB1"}]},
+
+lettersB1:{ loc:"the letters", art:"✉️", steps:[
+  {sp:"LETTER I", tx:"<i>(wax seal, heavy stock, perfect calligraphy)</i><br><br>BE IT KNOWN that VEXMOURNE IX, DREADLORD OF PENULTIMA, declares ETERNAL ENMITY against the bearer of the wrench. There will be a RECKONING. It will be SCHEDULED IN DUE COURSE.<br><br>— Dictated to Dennis."},
+  {sp:"LETTER II", tx:"Enmity proceeds apace. I have begun a training regimen. (Lunges. Vocal exercises. Dennis says I \"drop my shoulder.\") I do not think of you at all. (Dennis, do not write that down.) (DENNIS.)<br><br>— Dictated to Dennis, who apologizes."},
+  {sp:"LETTER III", tx:"A reckoning approaches. Prepare yourself.<br><br>P.S. Does the wrench have a name? Asking for tactical reasons."}],
+ choices:[], special:"nameWrench"},
+
+lettersB2:{ loc:"the letters", art:"✉️", steps:[
+  {sp:"LETTER IV", tx:"The kingdom holds improv night now. The Princess judges. She gave her first 10 last week — to a slime that does observational comedy. A SLIME. I placed fourth.<br><br>I have read the bulletins about a mirror-maze monster in the west. I'm sure he is very threatening, if you like that sort of thing.<br><br>— V. (Dennis has the night off.)"},
+  {sp:"LETTER V", tx:s=>"One night only. The Final Battle — real, this time, and friendly, which it turns out is not a contradiction, which it turns out nobody here knew.<br><br>"+(s.wrenchName?("Bring "+s.wrenchName+". It deserves a rematch."):"Bring the wrench. (You never told me its name. I have been calling it \"the incident.\")")+"<br><br>— your nemesis<br><i>(we ARE nemeses? you never write)</i>"}],
+ choices:[{label:"…", goto:"endB"}]},
+
+endB:{ loc:"", art:"🔧", steps:[
+  {sp:"", tx:"<b>BUG-031: CLOSED. BUG-047: OPENED.</b><br><br><i>Every patch opens two tickets. The town turned its sign around when you left, and somewhere down the road there's a church basement with folding chairs where, one day, everyone you've ever fixed will be waiting.</i>"},
+  {sp:"", tx:"<i>But tonight there's a letter in your pocket with a wax seal, from the happiest nemesis alive.</i><br><br><i>— end of vignette (Path B: The Bonk) —</i>"}],
+ choices:[{label:"Play again (do the show properly)", goto:"RESTART"}]}
+};
+
+/* ---------------- engine ---------------- */
+let cur=null, step=0;
+
+function show(id){
+  if(id==="RESTART"){ location.reload(); return; }
+  const sc=SC[id];
+  if(sc.special==="meteor"){ meteorGame(); return; }
+  cur=id; step=0;
+  $('loc').textContent=sc.loc||"";
+  $('art').textContent=sc.art||"";
+  const tk=$('ticket');
+  if(sc.ticket){ tk.textContent=sc.ticket; tk.style.display='block'; }
+  else tk.style.display='none';
+  $('wrench').style.display = sc.bonk ? 'block':'none';
+  renderStep();
+}
+function txt(v){ return typeof v==='function' ? v(S) : v; }
+function renderStep(){
+  const sc=SC[cur], st=sc.steps[step];
+  const nm=$('name');
+  nm.textContent = st.sp||""; nm.style.display = st.sp? 'block':'none';
+  nm.className = /VEX/.test(st.sp||"") ? 'vex' : (/LETTER|BUG|POWER/.test(st.sp||"")?'sys':'');
+  $('text').innerHTML = txt(st.tx);
+  $('text').style.animation='none'; void $('text').offsetWidth; $('text').style.animation='';
+  const last = step >= sc.steps.length-1;
+  $('more').style.display = last ? 'none':'block';
+  $('choices').innerHTML='';
+  if(last){
+    if(sc.special==="meteor2"){ meteor2(); return; }
+    if(sc.special==="nameWrench"){ nameWrench(); return; }
+    for(const c of (sc.choices||[])){
+      if(c.if && !c.if(S)) continue;
+      const b=document.createElement('button'); b.className='ch';
+      b.textContent = txt(c.label);
+      b.onclick=()=>{ if(c.do) c.do(S); show(c.goto); };
+      $('choices').appendChild(b);
+    }
+  }
+}
+$('box').addEventListener('click', e=>{
+  if(e.target.closest('.ch')||e.target.closest('.fake')||e.target.closest('input')) return;
+  const sc=SC[cur]; if(!sc || !sc.steps) return;
+  if(step < sc.steps.length-1){ step++; renderStep(); }
+});
+$('wrench').onclick=()=>{ S.bonkFrom=cur; show('bonk'); };
+
+/* ---- the meteor minigame: the correct input is no input ---- */
+function meteorGame(){
+  cur="meteorGame"; step=0;
+  $('loc').textContent="beat 2 — the meteor"; $('art').textContent="☄️";
+  $('ticket').style.display='none'; $('wrench').style.display='none';
+  $('name').style.display='none'; $('more').style.display='none';
+  $('text').innerHTML="<i>The meteor is falling. It will miss you by one handspan. All you have to do is nothing. For five seconds. Do nothing.</i>";
+  const ch=$('choices'); ch.innerHTML='';
+  const fb=document.createElement('div'); fb.className='fakebtns';
+  fb.innerHTML='<button class="fake">[SPACE] DODGE!</button><button class="fake">[A] BLOCK!</button><button class="fake">[!!] PANIC</button>';
+  ch.appendChild(fb);
+  const bar=document.createElement('div');
+  bar.style.cssText="height:6px;background:#2a2417;border-radius:3px;overflow:hidden;margin-top:10px";
+  bar.innerHTML='<div id="mb" style="height:100%;width:0;background:var(--gold);transition:width 5s linear"></div>';
+  ch.appendChild(bar);
+  let failed=false, done=false;
+  const fail=()=>{
+    if(done) return; done=true; failed=true; cleanup();
+    S.meteorFails++;
+    const lines=[
+      ["VEXMOURNE","<i>(calmly)</i> Again."],
+      ["VEXMOURNE","<span class='vexline'>FOUR HUNDRED YEARS.</span>"],
+      ["", "<i>Vexmourne lies down on the floor of the throne room, wings spread, staring at the ceiling. The bard immediately begins playing a piece of soft, devastated music.</i><br><br><b>DEBUGGER:</b> Did he write sad music for this exact situation?<br><b style='color:var(--vex)'>VEXMOURNE:</b> <i>(from the floor)</i> That is how often it happens."]];
+    if(S.meteorFails<=3){
+      const [sp,tx]=lines[S.meteorFails-1];
+      SC.meteorRetry={loc:"beat 2 — the meteor", art:"☄️", bonk:true,
+        steps:[{sp:"", tx:"<i>You flinched. The take is ruined. Dennis resets the rail.</i>"},{sp, tx}],
+        choices:[{label:"Take your mark. Again.", goto:"meteorGame"}]};
+      show('meteorRetry');
+    } else {
+      SC.meteorMercy={loc:"beat 2 — the meteor", art:"☄️", bonk:true,
+        steps:[{sp:"", tx:"<i>They lower the meteor past your shoulder on a rope, hand over hand.</i>"},
+               {sp:"VEXMOURNE", tx:"<span class='vexline'>WE WILL SIMPLIFY THE BLOCKING.</span>"},
+               {sp:"", tx:"<b>Beat 2 learned.</b> <i>(technically)</i>"}],
+        choices:[{label:"Back to rehearsals", goto:"hub", do:s=>{s.beats.meteor=true;}}]};
+      show('meteorMercy');
+    }
+  };
+  const onkey=e=>{ e.preventDefault(); fail(); };
+  fb.querySelectorAll('.fake').forEach(b=>b.onclick=fail);
+  window.addEventListener('keydown', onkey);
+  function cleanup(){ window.removeEventListener('keydown', onkey); }
+  setTimeout(()=>{ const mb=$('mb'); if(mb) mb.style.width='100%'; },50);
+  setTimeout(()=>{ if(!failed && !done){ done=true; cleanup(); show('meteorWin'); } },5200);
+}
+
+/* ---- meteor inverted: now you MUST press ---- */
+function meteor2(){
+  const ch=$('choices'); ch.innerHTML='';
+  const fb=document.createElement('div'); fb.className='fakebtns';
+  const b=document.createElement('button'); b.className='fake'; b.textContent="MOVE. MOVE. MOVE.";
+  fb.appendChild(b); ch.appendChild(fb);
+  let done=false;
+  const win=()=>{ if(done)return; done=true; window.removeEventListener('keydown',win); show('fight3'); };
+  b.onclick=win; window.addEventListener('keydown', win);
+  setTimeout(()=>{ if(!done){ done=true; window.removeEventListener('keydown',win);
+    SC.fight2hit={loc:"the real fight — phase 2", art:"💥",
+      steps:[{sp:"", tx:"<i>Four hundred years of trusting the work is a hard habit to break. The meteor does not miss. The world rings like a struck bell, and when your vision clears, Vexmourne is standing over you — having dragged you clear at the last instant, furious about it.</i>"},
+             {sp:"VEXMOURNE", tx:"<span class='vexline'>YOU ARE NOT ALLOWED TO DIE TO THE PROPS. YOU DIE TO ME OR NOT AT ALL.</span>"}],
+      choices:[{label:"Get up", goto:"fight3"}]};
+    show('fight2hit'); } },4000);
+}
+
+/* ---- name the wrench ---- */
+function nameWrench(){
+  const ch=$('choices'); ch.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.innerHTML='<div style="margin-bottom:8px;color:var(--dim);font-style:italic">Write back? (name the wrench)</div>';
+  const inp=document.createElement('input'); inp.className='nameit'; inp.maxLength=24; inp.placeholder="the wrench's name…";
+  const go=document.createElement('button'); go.className='ch'; go.style.marginLeft='8px'; go.textContent="Send";
+  const skip=document.createElement('button'); skip.className='ch'; skip.style.marginTop='8px'; skip.textContent="Don't reply. (Nemeses don't write.)";
+  go.onclick=()=>{ const v=inp.value.trim(); if(v){ S.wrenchName=v; toast("THE WRENCH IS NOW CALLED: "+v.toUpperCase()); } show('lettersB2'); };
+  skip.onclick=()=>show('lettersB2');
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') go.onclick(); e.stopPropagation(); });
+  wrap.appendChild(inp); wrap.appendChild(go); ch.appendChild(wrap); ch.appendChild(skip);
+}
+
+show('title');
+</script>
+</body>
+</html>

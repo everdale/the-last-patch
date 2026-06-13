@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Last Patch — Mechanic Prototype (BUG-072)</title>
+<style>
+  :root{
+    --bg:#0c0e13; --wall:#1a1410; --wall2:#221a12; --ink:#e8e2d0; --dim:#8a8472;
+    --gold:#d4a843; --lens:#6fb7d4; --crit:#e06c5a; --ok:#7ec97e; --wood:#3a2a18;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:Georgia,serif; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; padding:10px;}
+  #wrap{width:min(840px,98vw);}
+  h1{font-size:15px; letter-spacing:.25em; text-transform:uppercase; color:var(--gold);
+    text-align:center; font-weight:normal; margin-bottom:2px;}
+  #sub{text-align:center; color:var(--dim); font-size:12px; font-style:italic; margin-bottom:8px;}
+  /* scene */
+  #scene{position:relative; width:100%; height:420px; border-radius:10px; overflow:hidden;
+    background:linear-gradient(180deg,#241a12 0%,#1a130d 60%,#120d09 100%);
+    border:3px solid #3a3525; box-shadow:inset 0 0 70px #000;}
+  .floor{position:absolute; bottom:0; left:0; right:0; height:80px;
+    background:repeating-linear-gradient(90deg,#2a1f14,#2a1f14 38px,#241a10 38px,#241a10 76px);
+    border-top:2px solid #14100a;}
+  /* hotspots */
+  .hot{position:absolute; cursor:pointer; user-select:none; transition:filter .1s, transform .1s;
+    display:flex; flex-direction:column; align-items:center; text-align:center;}
+  .hot:hover{filter:drop-shadow(0 0 8px var(--gold)) brightness(1.12);}
+  .hot .lbl{font-size:10px; color:var(--dim); letter-spacing:.08em; margin-top:2px;
+    opacity:0; transition:opacity .12s; text-transform:uppercase;}
+  .hot:hover .lbl{opacity:1;}
+  .emoji{font-size:46px; line-height:1;}
+  /* curtain */
+  #curtain{position:absolute; top:0; left:54%; width:230px; height:300px; z-index:6;
+    background:repeating-linear-gradient(90deg,#5a1320,#5a1320 14px,#741a2a 14px,#741a2a 28px);
+    border-bottom:6px solid #3a0c14; border-radius:0 0 6px 6px; transition:transform 1.2s cubic-bezier(.2,.8,.2,1);
+    transform-origin:top; box-shadow:inset 0 -30px 40px #000; cursor:pointer;}
+  #curtain.fallen{transform:translateY(360px) scaleY(.25); pointer-events:none; opacity:.85;}
+  #curtain .rope{position:absolute; top:0; left:-14px; width:4px; height:120px; background:#caa24a;}
+  #curtain .knot{position:absolute; top:112px; left:-20px; font-size:16px;}
+  /* clock */
+  #clockwrap{position:absolute; top:46px; left:60%; z-index:3; text-align:center;}
+  #clock{width:150px; height:150px; border-radius:50%; background:radial-gradient(#2b2118,#1c150e);
+    border:7px solid #4a3a22; position:relative; box-shadow:0 0 30px #000;}
+  .num{position:absolute; font-size:15px; color:#cbb67e; width:22px; height:22px; line-height:22px;
+    text-align:center; cursor:pointer; border-radius:50%; transition:all .12s;}
+  .num.settable:hover{background:var(--gold); color:#1c150e; box-shadow:0 0 10px var(--gold);}
+  #hand{position:absolute; left:50%; bottom:50%; width:5px; height:48px; background:var(--gold);
+    transform-origin:bottom center; border-radius:3px; transition:transform .5s cubic-bezier(.3,1.4,.5,1);}
+  #pivot{position:absolute; left:50%; top:50%; width:12px; height:12px; background:#caa24a;
+    border-radius:50%; transform:translate(-50%,-50%); z-index:2;}
+  #bolt{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:13px; z-index:3;}
+  /* gate (sunrise) */
+  #gate{position:absolute; bottom:80px; left:22px; width:120px; height:210px; z-index:2;
+    background:linear-gradient(180deg,#241a10,#160f08); border:5px solid #4a3a22; border-radius:8px 8px 0 0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; transition:background 1.5s;}
+  #gate .glow{font-size:40px; opacity:0; transition:opacity 1.5s;}
+  #gate.open{background:linear-gradient(180deg,#ffd98a,#ffb76a 40%,#e0894a);}
+  #gate.open .glow{opacity:1;}
+  #gate.open ~ .floor{filter:brightness(1.3);}
+  /* lens overlay tint */
+  #scene.lensmode{box-shadow:inset 0 0 70px #000, inset 0 0 0 4px var(--lens);}
+  #scene.lensmode .hot:hover{filter:drop-shadow(0 0 9px var(--lens)) brightness(1.15);}
+  /* inspect card */
+  #card{position:absolute; z-index:30; max-width:260px; background:#0b1418; border:1px solid var(--lens);
+    border-radius:6px; padding:10px 12px; font-family:'Courier New',monospace; font-size:12px;
+    color:#bfe2ef; line-height:1.5; display:none; box-shadow:0 6px 24px #000;}
+  #card b{color:var(--lens);} #card .k{color:#6f8a96;}
+  /* dialogue / log */
+  #panel{margin-top:10px; min-height:96px; background:#141823; border:2px solid #3a3525;
+    border-radius:8px; padding:12px 16px; position:relative;}
+  #spk{font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin-bottom:4px;}
+  #spk.crit{color:var(--crit);} #spk.bard{color:#b48ae0;} #spk.lens{color:var(--lens);} #spk.sys{color:var(--ok);}
+  #line{font-size:16px; line-height:1.55;} #line i{color:var(--dim);}
+  #nextq{position:absolute; right:12px; bottom:8px; color:var(--gold); cursor:pointer; animation:bob 1s infinite; display:none;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+  /* inventory */
+  #inv{margin-top:10px; display:flex; gap:10px; align-items:center;}
+  .slot{width:60px; height:60px; border:2px solid #4a4434; border-radius:8px; background:#181c26;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
+    font-size:24px; position:relative; transition:all .12s;}
+  .slot.empty{opacity:.25; cursor:default;}
+  .slot:not(.empty):hover{border-color:var(--gold);}
+  .slot.active{border-color:var(--gold); background:#2a2416; box-shadow:0 0 12px var(--gold);}
+  .slot.lenson{border-color:var(--lens); box-shadow:0 0 12px var(--lens);}
+  .slot small{position:absolute; bottom:-16px; font-size:9px; color:var(--dim); letter-spacing:.05em; white-space:nowrap;}
+  #invhint{margin-left:auto; font-size:12px; color:var(--dim); font-style:italic; text-align:right; max-width:300px;}
+  #hintbtn{background:none; border:1px solid #4a4434; color:var(--dim); font-family:Georgia,serif;
+    font-size:12px; padding:5px 10px; border-radius:6px; cursor:pointer;}
+  #hintbtn:hover{border-color:var(--gold); color:var(--ink);}
+  #foot{text-align:center; color:#3f3b30; font-size:11px; margin-top:10px;}
+  #foot a{color:#5a5443;}
+  .tag{display:inline-block; font-family:'Courier New',monospace; font-size:10px; color:var(--ok);
+    border:1px solid #1e3a2a; border-radius:3px; padding:1px 5px; margin-left:6px;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>The Last Patch &nbsp;·&nbsp; mechanic prototype</h1>
+  <div id="sub">BUG-072 — “Curtain never rises. Sunrise gate stuck.” &nbsp; A point-and-click puzzle, not a dialogue tree.</div>
+
+  <div id="scene">
+    <!-- sunrise gate -->
+    <div id="gate" class="hot" data-id="gate" style="cursor:pointer">
+      <div class="glow">🌅</div>
+    </div>
+    <!-- QA supply hatch -->
+    <div class="hot" data-id="hatch" style="top:14px; left:30px; z-index:7;">
+      <div class="emoji">📦</div><div class="lbl">supply hatch</div>
+    </div>
+    <!-- bard -->
+    <div class="hot" data-id="bard" style="bottom:80px; left:300px; z-index:4;">
+      <div class="emoji">🎭</div><div class="lbl">the bard</div>
+    </div>
+    <!-- critic -->
+    <div class="hot" data-id="critic" style="bottom:80px; left:392px; z-index:4;">
+      <div class="emoji">🧐</div><div class="lbl">the critic</div>
+    </div>
+    <!-- playbill -->
+    <div class="hot" data-id="playbill" style="bottom:182px; left:300px; z-index:4;">
+      <div class="emoji">📜</div><div class="lbl">playbill</div>
+    </div>
+    <!-- curtain hiding clock -->
+    <div id="curtain" data-id="curtain">
+      <div class="rope"></div><div class="knot">🪢</div>
+    </div>
+    <!-- clock behind curtain -->
+    <div id="clockwrap">
+      <div id="clock" class="hot" data-id="clock">
+        <div id="hand"></div><div id="pivot"></div><div id="bolt">🔩</div>
+      </div>
+      <div class="lbl" style="color:var(--dim);font-size:10px;margin-top:4px;text-transform:uppercase;opacity:.6">the clock</div>
+    </div>
+    <div class="floor"></div>
+    <div id="card"></div>
+  </div>
+
+  <div id="panel">
+    <div id="spk"></div>
+    <div id="line"><i>Click things. Pick up a tool, then click what to use it on. Toggle the Lens 🔍 to see how things really work.</i></div>
+    <div id="nextq">▸</div>
+  </div>
+
+  <div id="inv">
+    <div class="slot" id="s-lens" data-tool="lens">🔍<small>Lens (inspect)</small></div>
+    <div class="slot empty" id="s-spanner" data-tool="spanner"><small></small></div>
+    <div class="slot" id="s-knife" data-tool="knife">🔪<small>Knife</small></div>
+    <button id="hintbtn">Stuck? Hint ▸</button>
+    <div id="invhint"></div>
+  </div>
+
+  <div id="foot">THE LAST PATCH — mechanic prototype · <a href="index.html">← the dialogue vignette (BUG-031)</a> · <a href="https://github.com/everdale/the-last-patch">repo</a></div>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const G={ // game state — the "hidden values" a debugger could read
+  hasSpanner:false, curtainOpen:false, boltOff:false, clockHour:6,
+  gateOpen:false, talkedBard:0, knowsThree:false, sawPlaybill:false,
+  activeTool:null, lens:false, hints:0, solved:false
+};
+const CURTAIN_TIME=6;     // playbill: "six o'clock sharp"
+const GATE_TIME=3;        // three hours too soon
+
+function say(speaker, text, cls){
+  $('#spk').textContent=speaker||''; $('#spk').className=cls||'';
+  $('#line').innerHTML=text; $('#nextq').style.display='none';
+}
+function flash(text){ say('', '<i>'+text+'</i>'); }
+
+/* ---------- inspect cards (the Lens = comedy + puzzle, never raw JSON) ---------- */
+const INSPECT={
+  gate:()=>`<b>SUNRISE GATE</b><br><span class="k">type:</span> scheduled<br><span class="k">driven by:</span> the clock<br><span class="k">opens at:</span> the morning call<br><span class="k">morning call:</span> <i>not six. earlier.</i><br><span class="k">currently:</span> ${G.gateOpen?'OPEN ☀':'shut'}`,
+  clock:()=>`<b>THE CLOCK</b><br><span class="k">reads:</span> ${G.clockHour} o'clock<br><span class="k">hour hand:</span> ${G.boltOff?'<b>loose — settable</b>':'bolted (🔩)'}<br><span class="k">hint:</span> ${G.boltOff?'click a number to set it':'something is holding the hand'}`,
+  bard:()=>`<b>THE BARD</b><br><span class="k">original sentences:</span> 0<br><span class="k">believes:</span> he is helping<br><span class="k">weak to:</span> being quoted back at<br><span class="k">note:</span> exactly one of his lines is useful`,
+  critic:()=>`<b>THE CRITIC</b><br><span class="k">performances rated:</span> 14,000<br><span class="k">joy:</span> 0.0<br><span class="k">currently:</span> deducting points for this card`,
+  playbill:()=>`<b>PLAYBILL</b><br><span class="k">tonight:</span> THE FINAL BATTLE<br><span class="k">curtain:</span> six o'clock sharp`,
+  curtain:()=>`<b>STAGE CURTAIN</b><br><span class="k">held by:</span> one rope (🪢)<br><span class="k">hides:</span> a clock<br><span class="k">weak to:</span> anything sharp`,
+  hatch:()=>`<b>QA SUPPLY HATCH</b><br><span class="k">dispenses:</span> 1× open-end spanner<br><span class="k">size field:</span> MAX <span class="k">(no validation)</span>`,
+  gate_done:()=>`<b>SUNRISE GATE</b><br><span class="k">opens at:</span> 3 o'clock ✓<br><span class="k">status:</span> OPEN. it's morning.`
+};
+function showCard(id, el){
+  const fn = (id==='gate'&&G.gateOpen)?INSPECT.gate_done:INSPECT[id];
+  if(!fn) return;
+  const c=$('#card'); c.innerHTML=fn();
+  const s=$('#scene').getBoundingClientRect(), r=el.getBoundingClientRect();
+  let x=r.left-s.left+r.width/2-130; x=Math.max(8,Math.min(x, s.width-276));
+  let y=r.top-s.top-10; if(y<8) y=r.bottom-s.top+8;
+  c.style.left=x+'px'; c.style.top=Math.min(y,s.height-150)+'px'; c.style.display='block';
+  clearTimeout(showCard._t); showCard._t=setTimeout(()=>c.style.display='none',5200);
+}
+
+/* ---------- tools ---------- */
+function setTool(t){
+  G.activeTool = (G.activeTool===t? null : t);
+  $$('.slot').forEach(s=>s.classList.remove('active','lenson'));
+  if(G.activeTool==='lens'){ G.lens=true; $('#scene').classList.add('lensmode'); $('#s-lens').classList.add('lenson');
+    flash('Lens active. Click anything to see how it really works.'); }
+  else { G.lens=false; $('#scene').classList.remove('lensmode');
+    if(G.activeTool){ $('#s-'+G.activeTool).classList.add('active'); flash('Selected the '+G.activeTool+'. Now click what to use it on.'); }
+  }
+}
+$('#s-lens').onclick=()=>setTool('lens');
+$('#s-knife').onclick=()=>setTool('knife');
+$('#s-spanner').onclick=()=> G.hasSpanner && setTool('spanner');
+
+/* ---------- bard quotes (dialogue-hidden hint) ---------- */
+const QUOTES=[
+  "“All the world’s a stage, and all the men and women merely players.”",
+  "“Better three hours too soon than a minute too late.”",   // THE useful one
+  "“The course of true love never did run smooth.”",
+  "“Brevity is the soul of wit.” <i>(he says, at length)</i>",
+  "“We are such stuff as dreams are made on.”"
+];
+
+/* ---------- main click handler ---------- */
+function interact(id, el){
+  // Lens mode: inspect anything
+  if(G.lens){ showCard(id, el);
+    say('LENS','<i>'+({gate:'A scheduled gate. It answers to the clock, not to you.',
+      clock:G.boltOff?'The hand is loose now. You could set it.':'The hour hand is bolted down. You’d need to loosen it.',
+      bard:'Zero original sentences. Exactly one of his quotes is load-bearing.',
+      critic:'Fourteen thousand shows. Zero joy. A reliable narrator about quality, at least.',
+      playbill:'“Curtain: six o’clock sharp.” Worth remembering.',
+      curtain:'Held up by a single rope. Practically begging.',
+      hatch:'A requisition hatch. The size field has no validation. Uh oh.'}[id]||'Nothing hidden here.')+'</i>','lens');
+    return;
+  }
+  // tool use
+  if(G.activeTool) return useTool(G.activeTool, id, el);
+  // plain interaction
+  PLAIN[id] && PLAIN[id](el);
+}
+
+const PLAIN={
+  hatch(el){
+    if(G.hasSpanner){ say('','<i>The hatch is empty now. It dispensed your one (1) spanner.</i>'); return; }
+    G.hasSpanner=true;
+    const s=$('#s-spanner'); s.classList.remove('empty'); s.innerHTML='🔧<small>Spanner (oversized)</small>';
+    say('SUPPLY HATCH','<i>The hatch clanks and extrudes an open-end spanner the size of a canoe paddle. It lands with a sound like a bell being told bad news. A slip flutters down:</i> “REQUISITION #1 — TOOL: SPANNER — SIZE: <b>MAX</b>.”','sys');
+    queue([['',"<i>Apparently the size field never had any validation. You make a note to file that. Later. With the spanner you can’t put in your pocket.</i>"]]);
+  },
+  playbill(){ G.sawPlaybill=true; say('PLAYBILL','Tonight’s performance: <b>THE FINAL BATTLE</b>.<br>Curtain: <b>six o’clock sharp</b>.'); },
+  bard(){
+    const q=QUOTES[G.talkedBard % QUOTES.length]; G.talkedBard++;
+    const isThree = q.includes('three hours');
+    if(isThree) G.knowsThree=true;
+    say('THE BARD', q + (isThree?' <span class="tag">useful?</span>':''), 'bard');
+    queue([['','<i>'+(isThree
+      ? 'He says it with the same nothing-weight as all the others. But the Critic did say you’d know the one when it was useful…'
+      : (G.talkedBard>=QUOTES.length ? 'You’ve heard him loop. Somewhere in there was one line that actually mattered.' : 'He beams, awaiting applause. There’s more where that came from. Unfortunately.'))+'</i>']]);
+  },
+  critic(){
+    say('THE CRITIC','I am no friend to the Bard. Perhaps one line in a hundred holds water. <i>(leaning in)</i> You’ll know the one when it’s <b>useful</b> — and you may stop your digging there. The rest is weather.','crit');
+  },
+  curtain(el){ say('','<i>Heavy stage curtain, drawn shut. A single rope holds it. It hides… something tall and round.</i>'); },
+  clock(){
+    if(!G.curtainOpen){ say('','<i>You can’t see the clock — the curtain’s in the way.</i>'); return; }
+    if(!G.boltOff){ say('THE CLOCK','<i>A grand clock, hour hand only. The hand won’t budge — it’s bolted (🔩) to the face. You’d need to loosen it.</i>'); return; }
+    say('THE CLOCK','<i>The hand is loose. Click a number on the dial to set the hour.</i>');
+  },
+  gate(){
+    if(G.gateOpen){ say('SUNRISE GATE','<i>Open. The morning pours in, three hours early, exactly as ordered.</i>','sys'); return; }
+    say('SUNRISE GATE','<i>A tall gate, shut fast. No handle, no lock — it just… waits. For what?</i>');
+  }
+};
+
+function useTool(tool, id, el){
+  // KNIFE
+  if(tool==='knife'){
+    if(id==='curtain'){
+      if(G.curtainOpen){ say('','<i>The curtain’s already down.</i>'); return; }
+      G.curtainOpen=true; $('#curtain').classList.add('fallen');
+      say('','<i>You saw through the rope. The curtain sighs to the floor in a heap of velvet — revealing a grand clock, and a window where a stuck, indecisive almost-dawn waits outside.</i> <span class="tag">low-hanging fruit ✓</span>');
+      clearTool(); return;
+    }
+    if(id==='bard'){ say('THE BARD','“Is this a dagger which I see before me—” <i>(He is delighted. You put the knife away before this becomes a whole thing.)</i>','bard'); clearTool(); return; }
+    say('','<i>The knife does nothing useful there.</i>'); return;
+  }
+  // SPANNER
+  if(tool==='spanner'){
+    if(id==='clock'){
+      if(!G.curtainOpen){ say('','<i>You can’t reach the clock through the curtain.</i>'); return; }
+      if(G.boltOff){ say('','<i>The hand’s already loose.</i>'); return; }
+      G.boltOff=true; $('#bolt').style.display='none';
+      say('','<i>The spanner is absurd and also exactly the right tool. The bolt surrenders with a squeal. The hour hand swings free.</i> <span class="tag">tool ✓ (not a bonk)</span>');
+      queue([['','<i>Now — what hour? Six o’clock is curtain. The gate wants the morning <b>call</b>, which is earlier. How much earlier did the Bard keep insisting?</i>']]);
+      clearTool(); return;
+    }
+    if(id==='gate'){ say('','<i>You give the gate a hearty whack. Four hundred years of someone else’s game design stares back, unimpressed. (Some gates don’t open by force. Some do. Not this one.)</i>'); clearTool(); return; }
+    say('','<i>You wave the enormous spanner at it. Nothing to torque here.</i>'); return;
+  }
+}
+
+/* ---------- the clock dial ---------- */
+function buildClock(){
+  const c=$('#clock');
+  for(let h=1;h<=12;h++){
+    const a=(h/12)*2*Math.PI - Math.PI/2;
+    const d=document.createElement('div'); d.className='num'; d.dataset.h=h; d.textContent=h;
+    d.style.left=(75+58*Math.cos(a)-11)+'px'; d.style.top=(75+58*Math.sin(a)-11)+'px';
+    d.onclick=(e)=>{ e.stopPropagation(); setHour(h); };
+    c.appendChild(d);
+  }
+  setHand(G.clockHour, false);
+}
+function setHand(h, anim){
+  const deg=(h%12)/12*360;
+  const hand=$('#hand'); if(!anim) hand.style.transition='none';
+  hand.style.transform=`translateX(-50%) rotate(${deg}deg)`;
+  if(!anim) requestAnimationFrame(()=>hand.style.transition='');
+}
+function refreshDial(){
+  $$('.num').forEach(n=> n.classList.toggle('settable', G.boltOff && !G.gateOpen));
+}
+function setHour(h){
+  if(G.gateOpen) return;
+  if(!G.boltOff){ say('','<i>The hand won’t move — still bolted. Loosen it first (the spanner).</i>'); return; }
+  G.clockHour=h; setHand(h,true);
+  if(h===GATE_TIME) winGate();
+  else if(h===CURTAIN_TIME) say('','<i>Six o’clock — curtain time. The gate doesn’t stir. The gate wants the morning <b>call</b>, not the curtain. Earlier.</i>');
+  else say('','<i>You set the clock to '+h+". The gate considers it, and declines.</i>");
+}
+function winGate(){
+  G.gateOpen=true; G.solved=true; $('#gate').classList.add('open'); refreshDial();
+  say('SUNRISE GATE','<i>Three o’clock — “better three hours too soon than a minute too late.” The morning <b>call</b>. The gate remembers what it’s for, and opens. Light floods a room that forgot it had a window.</i>','sys');
+  queue([
+    ['THE CRITIC','<i>(quietly, almost to himself)</i> …Three o’clock. Of course. <i>One</i> line in a hundred. He may be right once, the old fraud.'],
+    ['','<span class="tag" style="font-size:12px">BUG-072 ········ CLOSED</span><br><i>Resolution: FIXED. Sunrise gate now opens on the morning call (3:00), as scheduled. Curtain unaffected.</i>'],
+    ['','<i>That’s a puzzle: a thing you can see, a thing you must learn, a tool that isn’t a bonk, and a number nobody handed you. No menu. Now imagine a whole world of these — and a Lens that turns every object into one.</i>']
+  ]);
+  $('#invhint').textContent='';
+}
+
+/* ---------- little dialogue queue for ▸ advancing ---------- */
+let Q=[];
+function queue(arr){ Q=arr.slice(); $('#nextq').style.display='block'; }
+$('#nextq').onclick=()=>{ if(!Q.length){ $('#nextq').style.display='none'; return; }
+  const [sp,tx]=Q.shift(); say(sp,tx, sp==='THE CRITIC'?'crit':sp==='THE BARD'?'bard':sp==='SUNRISE GATE'||sp==='SUPPLY HATCH'?'sys':'');
+  if(!Q.length) $('#nextq').style.display='none'; };
+
+function clearTool(){ G.activeTool=null; $$('.slot').forEach(s=>s.classList.remove('active')); }
+
+/* ---------- wire hotspots ---------- */
+$('#scene').addEventListener('click', e=>{
+  const hot=e.target.closest('[data-id]'); if(!hot) return;
+  if(e.target.classList.contains('num')) return; // handled
+  interact(hot.dataset.id, hot);
+  refreshDial();
+});
+
+/* ---------- escalating hint system (fairness, per puzzle doctrine) ---------- */
+const HINTS=[
+  ()=> !G.curtainOpen ? 'Something’s hidden behind that curtain. You’re holding something sharp, and it’s held by a single rope.' :
+       !G.hasSpanner ? 'The clock’s hand is bolted. You’ll want a tool. There’s a supply hatch on the left wall.' :
+       !G.boltOff ? 'Use the spanner on the clock to loosen the bolted hand.' :
+       !G.knowsThree ? 'The gate opens on the “morning call,” not curtain. Talk to the Bard — one of his quotes is a number. The Critic will tell you which kind to trust.' :
+       'Curtain is six o’clock. “Three hours too soon” than that is… set the clock there.',
+  ()=> 'Chain: knife→curtain, hatch→spanner, spanner→clock, then set the hour to three (six o’clock curtain, minus the Bard’s “three hours too soon”).'
+];
+$('#hintbtn').onclick=()=>{
+  if(G.solved){ flash('Already solved. Go bother the Bard.'); return; }
+  const h=HINTS[Math.min(G.hints,HINTS.length-1)](); G.hints++;
+  $('#invhint').textContent=''; say('HINT', h, 'sys');
+};
+
+buildClock(); refreshDial();
+</script>
+</body>
+</html>
