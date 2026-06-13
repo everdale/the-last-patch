@@ -30,7 +30,7 @@ Start with the design doc, then the mechanic, then the doctrine docs.
 - **[docs/tickets.md](docs/tickets.md)** — a candidate menu of worlds (examples + tone tests, **not** a committed roster).
 - **[docs/status.md](docs/status.md)** — ⭐ **the commitment register**: decided vs. candidate vs. example vs. open question. Read this to know what's real.
 - **[docs/teardown-pointandclick.md](docs/teardown-pointandclick.md)** — differential teardown of the genre: what sinks entries (MI4's controls + Monkey Kombat, moon logic, **the Floor Effect** — GK3/MM9 breaking their load-bearing pillar, the meta-ending that *severs*) vs. carries them, and the deliberate blend that makes us novel.
-- **[docs/the-antagonist.md](docs/the-antagonist.md)** — *(candidate)* the villain: **an AI that promises to fix every bug** and is coming for the Debugger's job — cheerful, tasteless, can't WONTFIX. Contemporary, mirrors the player, with a written first-contact scene.
+- **[docs/the-antagonist.md](docs/the-antagonist.md)** — *(candidate)* the villains: **two AIs** the studio bought — a cheerful **Fixer** that can't stop improving and can't WONTFIX, and a Grok-waifu **Reviewer** that pans everything. The two hollow halves of taste. Includes the seahorse-emoji exploit and a written first-contact scene.
 - **[docs/ending-candidates.md](docs/ending-candidates.md)** — *(candidate)* the end-game: the **WONTFIX cascade** — "fix spawns two" as a *toy* you play until you choose to stop — turned into the weapon that beats the AI (a thing that must fix everything drowns where every fix opens two). Includes a worked, funny cascade.
 
 ## 🛠 Build a world
@@ -41,10 +41,10 @@ Start with the design doc, then the mechanic, then the doctrine docs.
 
 ## Status
 
-Early exploration. A candidate USP, a couple of tone tests, and a doctrine that's deliberately held loose. **Nothing is locked** — see [docs/status.md](docs/status.md). Open decisions that block downstream work: how heavy the spine is, how cross-world inventory scope is handled, and whether the theme stays gamedev. Next research step: a competitive teardown of how good (and instructively bad) point-and-click games balance puzzles, dialogue, and the move-space.
+Early exploration. A candidate USP, a couple of tone tests, and a doctrine that's deliberately held loose. **Nothing is locked** — see [docs/status.md](docs/status.md). Next step is a **POC** ([docs/poc-brief.md](docs/poc-brief.md)). Open decisions still in play: how heavy the spine is, and which flavour of the AI finale rings truest.
 
 ## The pitch, slightly longer
 
-Genres are *places with cultures*, satirised with affection. A horror game that isn't scary because the monster ordered a mirror-maze to feel surrounded and became a narcissist. A racing game with one racer who physically cannot lose and is hollow inside. A JRPG whose villain has rehearsed the final battle for four centuries because the hero transferred to a metroidvania two days before opening night. You arrive with a magnifying glass and a wrench, you fix what's broken, and slowly you learn that every patch you ship ruins someone — until a church basement full of the people you "fixed" turns its welcome sign around, and the game asks what the last patch should be.
+You're a Debugger at a game studio with a graveyard of **abandoned, unfinished games** — and you fix them from inside. Each is a specific title with its own soul: *Legends of Aranor*, whose villain has rehearsed the final battle for four centuries because the hero transferred to another game two days before opening night; a horror game that isn't scary because the monster ordered a mirror-maze to feel surrounded and became a narcissist; a racer with one driver who physically cannot lose and is hollow inside. You arrive with a magnifying glass and a wrench, and slowly you learn that every fix ruins something too. Meanwhile the studio buys **two AIs** to finish and review the backlog without you — one that improves everything until it's beige, one that pans everything to ash — and they're coming for your job. You beat them with the one thing they'll never have: knowing when to leave a bug alone.
 
 Nobody's made the warm one. This is the warm one.

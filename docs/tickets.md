@@ -1,6 +1,8 @@
 # The Ticket Queue — a candidate menu, not a roster
 
-> ⚠️ This is a **menu of candidate worlds and tone tests**, not a committed lineup ([status.md](status.md)). Expect most of these to be cut, re-themed, or merged. The value here is the *range* — proof that the "fixer enters broken games" frame generates varied, differently-shaped worlds — not a promise to build all of them. If we keep the bug-tracker-as-quest-log device, each entry is a seed written as a **bit** (want / plan / backfire), not a premise.
+> ⚠️ This is a **menu of candidate worlds and tone tests**, not a committed lineup ([status.md](status.md)). Expect most to be cut, re-themed, or merged.
+>
+> 🔧 **Reframe (current direction):** each world is now **a specific abandoned game** in the studio's backlog — give every entry a *title* (e.g. *Legends of Aranor*, *The Last Ember*) and specific place/character names, not a generic genre. Specificity is more memorable and funnier. The seeds below still describe the *bit* (want / plan / backfire); they need their titles and proper nouns filled in. ([design.md §9](design.md).)
 
 Rule of thumb: if a ticket can't name what its central character *wants*, it isn't ready to build.
 

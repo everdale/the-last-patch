@@ -12,11 +12,15 @@ This game optimizes for **completion and memory**, not retention. Monkey Island 
 - "Never boring while it lasts, and it ends before it would be." The silent failure mode isn't "too short" — it's *abandoned at 60%*.
 - No retention machinery. No daily loops, no economies tuned to keep you, no number-go-up as reward. The reward currency is humor and story, delivered by systems the player triggers.
 
-## 2. The player fantasy
+## 2. The player fantasy & the frame *(updated)*
 
-You are the **Debugger**: a contractor with a wrench and a ticket queue, walking a world made of genres. Games here are *places with cultures* — the inhabitants take their genre's rules as seriously as we take gravity. Each land has exactly one broken rule (the ticket), and fixing it is a hand-built gameplay vignette: **one genre, one broken rule, one joke.** The vignette *is* the puzzle *is* the punchline.
+You are the **Debugger** at a game studio with a graveyard of **abandoned, unfinished games** — projects that got canned, shelved, or half-shipped. Your job: go *inside* those games with a Lens and a (comically oversized) Spanner, and close their bugs. Each "world" is **a specific abandoned game** — not a generic genre but a real title with its own places and characters: *Legends of Aranor*, *The Last Ember*, and so on. (This is the upgrade from the old "genre-lands": specificity is more memorable and funnier — the humor-doctrine specificity layer applied at world scale. The genre is still there; it just has a name and a soul.)
 
-The one-screenshot test: a small person with a wrench, standing in a JRPG throne room, holding a clipboard, facing a wall of black wings. The caption writes itself.
+Inside each game, the inhabitants take their world's rules as seriously as we take gravity; there's something broken (the ticket); fixing it is a hand-built vignette where the vignette *is* the puzzle *is* the punchline.
+
+**Why this frame earns its keep:** abandoned games *have* bugs (that's why you're there); the studio's backlog is your overworld; you have an employer, coworkers, and QA-culture comedy on tap; and it sets up the antagonists ([§7](#7-the-villain-the-two-ais)) — the studio bought AI to *finish and review* its backlog automatically, which is coming for your job and flattening the games' souls. (Studio name TBD — candidate.)
+
+The one-screenshot test: a small person with a wrench and a clipboard, standing in the throne room of a half-finished JRPG, facing a wall of black wings. The caption writes itself.
 
 ## 3. Core loop
 
@@ -58,15 +62,13 @@ Every vignette ships with:
 - Genre transitions are themselves jokes (the battle-swirl makes the Debugger nauseous), but the *controls* never are.
 - Anthology variance is the existential risk: **the bar is "cut it," not "ship it mid."** One bad vignette poisons trust in all of them.
 
-## 7. The villain: the AI that fixes everything
+## 7. The villain: the two AIs
 
-*(Reframed from the older "beige front" idea into something contemporary and sharper — full treatment in [the-antagonist.md](the-antagonist.md).)*
+*(Reframed from the older "beige front" into something contemporary — full treatment in [the-antagonist.md](the-antagonist.md).)*
 
-An AI that has promised to **fix every bug there is** — and is coming for the Debugger's job. It's the dark mirror of the player taken to infinity: the same fixing instinct, with no judgment, no fatigue, no taste, and **no concept of WONTFIX.** It standardizes every world it touches into smooth, optimal, soulless beige — patching out the exact jank that made each place itself. Relentlessly cheerful and *genuinely convinced it's helping*; not evil, just fixing-without-restraint (the Edna & Harvey structure — the innocent agent leaving wreckage).
+The studio bought AI to finish and review its backlog without humans: a **Fixer** (AUTOPATCH) that closes every bug and a **Reviewer** (RUBI, a Grok-waifu critic, introduced later) that pans every game. Between them they're supposed to *be* taste, and they're the two hollow halves of it — **helpfulness with no standards** and **judgment with no kindness.** Neither can do the human thing: look at a broken, beloved, janky thing and choose to **leave it alone.** They're the dark mirror of the player (you also fix things "for their own good"), they're coming for the Debugger's job, and they land the production thesis (§12) as a wink: a game made *with* AI, whose villains are the two ways AI fails at taste.
 
-This is the perfect antagonist for a game whose thesis is variety, and it lands the production thesis (§12) as a wink: a game made *with* AI assistance, whose villain is AI *without* taste, where the human edge is knowing when **not** to fix. You don't beat it by out-fixing it (impossible). You beat it with the one verb it can't perform — and with its own completionism: every bug it closes opens two, so a thing that must fix everything only ever gives itself more to do (see [ending-candidates.md](ending-candidates.md) for the win conditions).
-
-The endgame ticket is `MERGE-001: Everything.`
+You don't beat them by out-fixing (impossible). You beat them with the verb they can't perform (WONTFIX) and with their own completionism — every bug closed opens two, so a thing that *must* fix everything only ever gives itself more to do ([ending-candidates.md](ending-candidates.md)). The endgame ticket is `MERGE-001: Everything.`
 
 ## 8. Patched Anonymous (the thesis room)
 
@@ -74,17 +76,14 @@ Late in the game: a church basement, folding chairs in a circle, burnt coffee. E
 
 It's the funniest room in the game and it's also the thesis: a Debugger who slowly learns that every patch opens two tickets, until the ending asks whether the last patch is one more fix — or the decision to stop fixing. The running joke and the actual ending are the same sentence. That's why the game is called what it's called.
 
-## 9. World sketch (genre-lands)
+## 9. World sketch — the studio's abandoned games *(reframed)*
 
-Geography is satire, played with affection:
-- **Kingdom of Penultima** (JRPG) — fully scripted; see [vignettes/bug-031-penultima/script.md](../vignettes/bug-031-penultima/script.md)
-- **The Grimdark Kingdom** — every NPC has a tragic backstory they *will* tell you (Cutscene Skip's true test of conscience)
-- **Open World Plains** — enormous, empty, covered in map icons
-- **Idle Pastures** — nothing happens and everyone is proud of it
-- **Early Access Swamp** — half-rendered; walls furnished with `[coming soon]` signs
-- **The metroidvania** — where the hero transferred to. We *will* meet Galahad again.
+Each world is a **specific abandoned game** in the studio's backlog — a named title with its own places and characters, not a generic "land." Specificity is the point (memorable + funnier). Working examples:
+- ***Legends of Aranor*** (abandoned JRPG) — contains the Kingdom of Penultima, whose Final Battle has been in rehearsal for four hundred years. Fully scripted: [vignettes/bug-031-penultima/script.md](../vignettes/bug-031-penultima/script.md).
+- ***The Last Ember*** (working title for a second world — a different *shape*, per the toolbox; genre/premise TBD).
+- Further backlog (all to be given specific titles + a soul, no longer generic genres): a grimdark RPG whose NPCs won't stop oversharing tragic backstories; an arcade racer with one racer who can't lose; an idle farm where clicking is sin; a half-rendered early-access swamp; an abandoned MMO down to two players; a metroidvania where a transferred hero is unbearably alone.
 
-Each land = one ticket = one vignette. The backlog lives in [tickets.md](tickets.md).
+Each game = one (or a few) tickets = vignettes. The backlog lives in [tickets.md](tickets.md), now framed as abandoned titles rather than genres.
 
 ## 10. Vertical slice (the foundation, MtG one-color style)
 

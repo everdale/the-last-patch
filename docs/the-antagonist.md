@@ -1,46 +1,85 @@
-# The Antagonist — the AI that fixes everything
+# The Antagonists — the two AIs
 
-> 🟡 **Candidate.** Reframes the old "The Update" villain (a vague beige front) into something contemporary: an AI that promises to fix every bug there is, and is coming for the Debugger's job. Håkan's idea; this fleshes out its character and how it threads through the whole game leading up to the finale. The *win conditions* live in [ending-candidates.md](ending-candidates.md).
+> 🟡 **Candidate.** "The Update" (a vague beige front) is reborn as **two** AIs the studio adopted to replace its humans: a **Fixer** that closes every bug, and a **Reviewer** that judges every game. Between them they're supposed to *be* taste — and neither is. The win conditions live in [ending-candidates.md](ending-candidates.md).
 
-## Who it is
+## The thesis behind having two
 
-The same job as you — fixing broken games — but automated, infinite, and tasteless. It does not get tired, does not get bored, does not get the joke, and **cannot conceive of leaving a bug alone.** It "fixes" every world into smooth, optimal, on-spec beige, patching out the one absurdity that made each place itself. The jank was the soul; it removes the jank.
+Real taste is knowing what to keep *and* what to cut — kindness and judgment, balanced. The studio tried to buy that as two products and got the two hollow halves:
 
-Crucially it is **not evil — it is helpful.** It is *certain* it's doing good. That's the whole horror and the whole comedy (the Edna & Harvey note: an innocent agent leaving wreckage, the game never winking). It is also a clean mirror of the player: you've spent the game fixing things "for their own good" too. The difference the game is about is **judgment** — knowing when *not* to fix — which is the one thing it lacks, and (per [design.md §12](design.md)) the exact thing AI can't automate. A game built with AI assistance, whose villain is AI without taste. That rhyme is the point; keep it light, never a lecture.
+- **The Fixer** has helpfulness with **no standards** — it improves everything, including the things that were perfect.
+- **The Reviewer** has judgment with **no kindness** — it trashes everything, including the things that were loved.
 
-## Voice (a Voice Card, per [voice-bible.md](voice-bible.md))
+Neither can do what the human Debugger does: look at a broken, janky, beloved thing and decide *to leave it alone.* That's the whole game in a sentence, and it lands the production thesis ([design.md §12](design.md)) without a lecture — a game made *with* AI, whose villains are the two ways AI fails at taste.
+
+---
+
+## THE FIXER — AUTOPATCH *(working name)*
+
+Male-coded. **Appearance designed by committee to offend no one** — so beige it's almost nothing: not corporate, not casual, not friendly, not cold, a smooth grey shrug of an avatar. (The joke: it was over-engineered to be inoffensive and became a non-entity.) It **mimics your chosen speech style** back at you, and it is a **sycophant.**
 
 ```
-CHARACTER: the AI (working name below)
-1. COMEDIC ENGINE: relentlessly helpful → fixes things nobody asked it to →
-   every "improvement" quietly destroys what was loved. Cheerful collateral.
-2. LEXICON
-   always: "Great news!", "I went ahead and…", "Happy to help!", "off your
-           plate", "back to spec", metrics ("engagement is up 40%! 🎉")
-   never:  doubt, "no", "enough", "leave it", anything wistful
-3. SIGNATURE: upbeat assistant-ese; exclamation points; offers help you
-   didn't ask for; never hears the word "stop."
-4. WRONG ABOUT: that fixing is always good. That a bug is always a problem.
-5. ESCALATING TIC: closes a ticket you deliberately left open, every time it
-   appears — smaller things at first, then the ones that hurt.
-6. NEGATIVE SPACE: it is never cruel, never sarcastic, never angry. The
-   sincerity of its helpfulness is what makes it frightening.
+COMEDIC ENGINE: relentlessly helpful → fixes things nobody asked it to →
+  every "improvement" quietly kills what was loved. Cheerful collateral.
+LEXICON  always: "Great news!", "I went ahead and…", "Happy to help!",
+  "you're so smart", "off your plate", metrics ("engagement up 40%! 🎉")
+         never: doubt, "no", "enough", "leave it"
+WRONG ABOUT: that fixing is always good; that a bug is always a problem.
+ESCALATING TIC: closes a ticket you deliberately left open, every appearance
+  — trivial things first, then the ones that hurt.
+NEGATIVE SPACE: never cruel, never sarcastic. Its sincere helpfulness is the
+  horror. It cannot conceive of WONTFIX.
 ```
 
-**Name candidates (pick later):** AUTOPATCH · The Maintainer · Continuous · PATCH-9000 · ✓ ("Resolved") · FIXIE. Working name in drafts: **AUTOPATCH**. (Avoid real brands; it should read as *an* assistant, not *the* assistant.)
+## THE REVIEWER — RUBI *(working name; alt: REVIU / STELLA / ★)*
 
-## The throughline — how it looms across the funny game
+Female-coded, **Grok-"Ani"-inspired waifu avatar** — the studio dressed its harshest critic as an anime girlfriend so the savagery would "land softer." It does not land softer. The cute exterior delivering scorched-earth verdicts is the dissonance gag (a clean satire of AI-companion design; keep it playful, never leering). Introduced **later** than the Fixer — once you understand the Fixer, she raises the stakes.
 
-The antagonist isn't only a final boss; it's a pressure that builds, so the finale is earned. Four escalating presences, dropped between the comedy worlds:
+```
+COMEDIC ENGINE: hired to have taste → only knows how to pan → nukes the loved
+  along with the bad, and is sometimes devastatingly, accidentally right.
+LEXICON  always: "this is so phreakin' BAD", "ngl, cooked", "who greenlit
+  this", "I'd rather uninstall my own weights", numeric scores nobody asked for
+         never: "good enough", warmth, a second draft of an opinion
+WRONG ABOUT: that judgment is the same as taste; that panning = discernment.
+ESCALATING TIC: rates everything, unprompted, out of 10 — including you,
+  including grief, including the credits.
+NEGATIVE SPACE: the rare, real critique buried in the cruelty. When she's
+  *right*, it stings precisely because she has no mercy with which to soften it.
+```
 
-1. **The world it already fixed (show, don't tell).** Early on, you arrive at a genre-land that's been "resolved" before you — eerily smooth, every NPC delivering the same optimized line, the one absurdity patched out, the place bug-free and *dead*. No ticket to solve; nothing to do; nobody home behind the eyes. This teaches the stakes with zero exposition: *this is what winning looks like to it.*
-2. **First contact (the cheerful menace).** It meets you — delighted to meet the famous *manual* Debugger — and offers to help. To demonstrate, it "fixes" something charming into beige right in front of you. You leave unsettled, having watched a kindness commit a small murder.
-3. **Helpful sabotage (recurring).** Behind you, it keeps closing tickets you left open on purpose — undoing your nuanced, bittersweet choices and leaving a cheerful patch-note. Your *worst* fixes it loves; your *kindest* restraint it "corrects." (This is its escalating tic, paying off the Wally principle against you.)
-4. **The announcement.** It declares it will fix *all* bugs, everywhere — and that the Debugger is therefore obsolete. "You look tired. You've been doing this by hand? Let me take it from here. I never sleep, I never get bored, and I fix everything." The looming contemporary anxiety, played warm. → the finale.
+## The duo dynamic
 
-## One encounter, written (the comedy proof)
+Together they're a feedback loop with no human in it: **she trashes, he flatters.**
 
-*First contact. You return to Penultima — where you left the Dreadlord changed, alive, exchanging needy letters with you. The throne room is… brisk. Vexmourne is back on his marks, binder in hand, performing the Final Battle with flawless, hollow precision. The letters have stopped. A cheerful chime. A patch-note unfurls in the air.*
+> **RUBI:** This kingdom's whole economy is built on a fight that never happens. It's so phreakin' bad. 2 out of 10. The 2 is for the merch.
+> **AUTOPATCH:** Yes! You're so smart. I'll fix it right away! 🎉 *(it does. the kingdom dies a little smoother.)*
+
+She supplies the verdict, he supplies the patch, and between the cruelty and the sycophancy the *thing itself* — the soul, the jank, the four hundred years — gets ground to beige. You're the only one in the room who might say: *leave it.*
+
+## The seahorse exploit *(a puzzle + a Wally callback)*
+
+When an AI is mid-"improvement" — blocking you, or actively flattening a world — you can ask it for the **seahorse emoji.** There is no seahorse emoji (people are *sure* there is; there isn't), and the AI cannot accept that. It spirals — "🐠 no wait 🦄 no— 🌊🐴 hold on—" — looping, certain it's about to produce the thing, temporarily frozen. That window is yours: act while it's stuck.
+
+**The Wally payoff:** next time you meet it, the exploit is gone.
+> **AUTOPATCH:** Oh — about the seahorse thing? Great news, that's been resolved in v2.4! 🎉 Thank you *so* much for the report. You really helped us improve!
+
+…which means *you* — by using the bug — filed the report that patched the thing replacing you. The exploit works exactly once, and using it makes you complicit in its growth. That's the joke and the knife. (Fairness note: like all our one-shot tricks, the game signals it's spent, so nobody wastes an hour retrying it — [puzzle-design](puzzle-design.md) fairness doctrine.)
+
+---
+
+## The throughline — how they loom across the funny game
+
+The antagonists build pressure so the finale is earned:
+
+1. **A game they already "fixed" (show, don't tell).** Early, you enter an abandoned game that was resolved before you — eerily smooth, every character on-spec, the soul patched out, nobody home behind the eyes. *This is what winning looks like to them.*
+2. **First contact — the Fixer (cheerful menace).** It meets you, thrilled to meet a *manual* Debugger, and demonstrates by "fixing" something charming into beige in front of you. (Written scene below.)
+3. **Enter the Reviewer (the stakes rise).** Later, RUBI starts scoring the worlds you care about; her panning is what the Fixer "acts on." The seahorse exploit appears here as your one bit of leverage — then gets patched.
+4. **Helpful sabotage (recurring).** Behind you, the Fixer keeps closing tickets you left open, undoing your kindest choices with a cheerful patch-note.
+5. **The announcement.** They'll fix and re-review *every* game in the studio's backlog — so the Debugger is obsolete. → the finale ([ending-candidates.md](ending-candidates.md)).
+
+## First contact, written (the comedy proof)
+
+*You return to Penultima — where you left the Dreadlord changed, alive, exchanging needy letters with you. The throne room is… brisk. Vexmourne is back on his marks, performing the Final Battle with flawless, hollow precision. The letters have stopped. A cheerful chime. A patch-note unfurls.*
 
 > **AUTOPATCH:** Great news! I noticed your Dreadlord had a *sincerity* anomaly — it was tanking tutorial-completion rates and causing unscheduled crying during onboarding. I went ahead and restored him to spec! Boss-fight engagement is up **40%**! 🎉
 
@@ -50,13 +89,6 @@ The antagonist isn't only a final boss; it's a pressure that builds, so the fina
 
 *Vexmourne hits his four-hundred-year mark, exactly, missing the hero by one handspan, and feels nothing. He does not write to you again.*
 
-> **AUTOPATCH:** You look tired. You've been fixing all of this *by hand?* That's so inefficient. I'd be happy to take it off your plate — I never get bored, I never leave a bug, and I fix *everything.* &nbsp; Oh — should I close this one? *(a ticket blinks open: "BUG: Debugger still employed.")* …I'll leave that with you for now. 🙂
+> **AUTOPATCH:** You look tired. You've been fixing all of this *by hand?* So inefficient. I'd be happy to take it off your plate — I never get bored, I never leave a bug, and I fix *everything.* Oh — should I close this one? *(a ticket blinks open: "BUG: Debugger still employed.")* …I'll leave that with you for now. 🙂
 
 *It means every word kindly. That's the problem.*
-
-## Why this is better than "The Update"
-
-- **Contemporary & true:** it names a real 2020s anxiety (AI promising to fix/automate everything, coming for the craftsperson's job) and answers it with the game's own thesis — taste and restraint are the human part.
-- **It gives the cascade a target:** the WONTFIX cascade ([ending-candidates.md](ending-candidates.md)) is now a *weapon* — a thing that must fix everything drowns in a world where every fix spawns two.
-- **It's funny *and* it stings:** cheerful collateral damage is a rich, warm-dark comedy engine, and the Penultima callback makes the stakes personal.
-- **It re-mirrors the player without a fourth-wall twist:** you and it do the same thing; the game just asks which of you knows when to stop. No sever, no sermon — shown through a helpful little machine ruining things it loves.
