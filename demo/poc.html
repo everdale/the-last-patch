@@ -1,226 +1,266 @@
 <!DOCTYPE html>
 <!--
-  THE LAST PATCH — proof-of-concept slice #2 (demo/poc.html)
+  THE LAST PATCH — proof-of-concept slice #3 (demo/poc.html)
   ===========================================================
-  Rework after Håkan's red pen on POC #1 (see memory/poc-redpen-1). This pass:
+  Reworked again after Håkan's red pen: he wanted a MORE SOPHISTICATED, more
+  "mature product" scene (MI3 / Deponia / Gabriel Knight grade), a more
+  interesting premise, more effective humor, natural Spanner minigames, and
+  funny optional interactions that don't advance the plot. Also: the Fixer AI
+  is renamed from AUTOPATCH to a proper name — GEORGE, after George Boole
+  (Claude ← Claude Shannon). The joke with teeth: Boole gave computing TRUE
+  and FALSE; George is the one entity that can only ever evaluate to FIX,
+  never WONTFIX.
 
-    * FRESH world (not Penultima): BOGWILD, an early-access survival game
-      stuck in eternal Early Access. Placeholder visuals are DIEGETIC here —
-      graybox, missing-texture checkerboards, T-posed NPCs, [WIP] tags — so
-      "no committed art" is the joke, not a limitation (floor effect).
-    * Classic adventure input: LEFT-CLICK = interact, RIGHT-CLICK = look.
-      The "Lens" is just looking — a debugger sees a world's hidden state
-      where everyone else sees flavor. Inspect is READ-ONLY (a pinned
-      callout, dismissed on the next action — no timer, no modal).
-    * The SPANNER is an ordinary inventory item. Select an item, then use it
-      on a hotspot OR combine it with another item. No tool-mode, no modal
-      patch prompt — nothing to get trapped in.
-    * Hover shows the object's name + an affordance glyph (what L / R do).
-    * In-world dialogue: speech bubbles anchored to the speaker, one
-      consistent rule (while a line is up, a click advances it).
-    * ONE real multi-step puzzle (no lazy branching): trace the gates by
-      inspecting, gather + combine items, patch two different broken values
-      (vendor price NaN, bench [WIP]), craft the first Torch, graduate.
-    * The bill: finishing the tutorial graduates everyone into a Zone 2 that
-      was never built → a new ticket → AUTOPATCH cheerfully papers over it.
+  PREMISE (Håkan's pick): "the sorrow leak."
+  The abandoned grimdark RPG GRIMHOLLOW. In its village of Mournwell, suffering
+  is social currency — everyone competes over the most tragic backstory. The
+  game has soft-locked: the town is so sad nothing functions. The bug is a
+  DIAGNOSIS, not a labeled toggle — you investigate (talk + inspect) to learn
+  that the LOUDEST mourner (Baron Graveworth) is a performer (red herring), and
+  the real source is a quiet boy, Pip, whose GENUINE grief overflowed into the
+  shared Weeping Well because the town's grief-plumbing has no channel for the
+  real kind. The shallow fix (clamp Pip) re-floods — root vs. symptom. The
+  right fix: open a channel for genuine grief (a natural sluice minigame).
+  Then George "helpfully" normalizes Pip to spec, flattening the one real
+  feeling in town — the villain plant and the thesis, without a speech.
 
-  CANDIDATE, like everything. See docs/poc-brief.md, docs/status.md.
+  Input is the model Håkan approved: LEFT-CLICK interact, RIGHT-CLICK look,
+  the Spanner is an inventory item (use-on-world + combine), in-world dialogue,
+  hover affordance glyphs, no tool-mode, no trapping modal. CANDIDATE, always.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Last Patch — BOGWILD / BUG-256 (core-loop POC)</title>
+<title>The Last Patch — GRIMHOLLOW / BUG-413 (core-loop POC)</title>
 <style>
   :root{
-    --bg:#0c0f0d; --ink:#dfe6df; --dim:#7f8c80; --gold:#d4a843;
-    --look:#6fb7d4; --act:#8fd49a; --spanner:#e08a4a; --ok:#7ec97e; --warn:#e3c08a;
-    --miss-a:#3a1030; --miss-b:#0c0f0d; --box:#2a2f2a; --box2:#363d36;
-    --auto:#b8b2a0; --greg:#9fd6a8;
+    --bg:#0a0b10; --ink:#d7d9e2; --dim:#787c8c; --gold:#c9a94e;
+    --look:#7bb8d6; --act:#86c79a; --spanner:#d98a52; --ok:#7ec97e; --warn:#d9b06a;
+    --grim:#3a2f4a; --grim2:#241d30; --stone:#2b2d38; --stone2:#34313f;
+    --geo:#b8b2a0;            /* George — beige */
+    --baron:#c58fb0; --wend:#9fb0c4; --tibbs:#cdb06a; --pip:#8fbfae; --grief:#6f78b0;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{background:var(--bg); color:var(--ink); font-family:Georgia,'Times New Roman',serif;
     min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:10px;
     -webkit-user-select:none; user-select:none;}
-  #wrap{width:min(900px,99vw);}
+  #wrap{width:min(920px,99vw);}
   h1{font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold);
     text-align:center; font-weight:normal; margin-bottom:1px;}
   #sub{text-align:center; color:var(--dim); font-size:12px; font-style:italic; margin-bottom:8px;}
   #sub b{color:var(--act);} #sub i.l{color:var(--look); font-style:normal;}
 
-  /* ---------------- the scene (a half-built early-access swamp) ---------------- */
-  #scene{position:relative; width:100%; height:452px; border-radius:8px; overflow:hidden;
-    cursor:default;
-    background:
-      radial-gradient(120% 80% at 50% 120%, #243026 0%, #16201a 55%, #0c120e 100%);
-    border:3px solid #2e362e; box-shadow:inset 0 0 80px #000;}
-  /* a strip of "unloaded world" — the classic missing-texture checkerboard
-     (built from cheap linear gradients so it rasterises fast everywhere) */
-  #scene:before{content:""; position:absolute; inset:0; pointer-events:none; opacity:.10;
-    background-image:
-      linear-gradient(45deg,#ff3df0 25%,transparent 25%,transparent 75%,#ff3df0 75%),
-      linear-gradient(45deg,#ff3df0 25%,transparent 25%,transparent 75%,#ff3df0 75%);
-    background-size:46px 46px; background-position:0 0,23px 23px;}
-  .ground{position:absolute; left:0; right:0; bottom:0; height:92px; z-index:1;
-    background:repeating-linear-gradient(90deg,#1d271f,#1d271f 44px,#19211b 44px,#19211b 88px);
-    border-top:2px solid #0e1410;}
-  /* the unbuilt far zone (top band) */
-  #void{position:absolute; top:0; left:0; right:0; height:120px; z-index:0;
-    background-color:var(--miss-b);
-    background-image:
-      linear-gradient(45deg,var(--miss-a) 25%,transparent 25%,transparent 75%,var(--miss-a) 75%),
-      linear-gradient(45deg,var(--miss-a) 25%,transparent 25%,transparent 75%,var(--miss-a) 75%);
-    background-size:40px 40px; background-position:0 0,20px 20px;
-    opacity:.5; filter:saturate(.7);}
-  #voidlbl{position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:1;
-    font-family:'Courier New',monospace; font-size:11px; color:#caa; letter-spacing:.18em; opacity:.7;}
+  /* ---------------- scene: the village square of Mournwell ---------------- */
+  #scene{position:relative; width:100%; height:462px; border-radius:8px; overflow:hidden; cursor:default;
+    background:linear-gradient(180deg,#181626 0%,#15131f 42%,#100d18 100%);
+    border:3px solid #2a2636; box-shadow:inset 0 0 90px #000;}
+  /* perpetual drizzle (cheap, static-ish gradient) */
+  #scene:before{content:""; position:absolute; inset:-20% 0 0 0; pointer-events:none; opacity:.10;
+    background:repeating-linear-gradient(74deg, transparent 0 7px, #b9c4e6 7px 8px); animation:rain 0.7s linear infinite;}
+  @keyframes rain{from{transform:translateY(0)} to{transform:translateY(24px)}}
+  .ground{position:absolute; left:0; right:0; bottom:0; height:96px; z-index:1;
+    background:linear-gradient(180deg,#1a1622,#120f1a); border-top:2px solid #0c0a12;
+    box-shadow:inset 0 14px 26px #000;}
+  /* a wet flagstone hint */
+  .ground:after{content:""; position:absolute; inset:0; opacity:.5;
+    background:repeating-linear-gradient(90deg,#1c1828,#1c1828 52px,#171320 52px,#171320 104px);}
+  /* distant ruined skyline (placeholder graybox spires) */
+  #skyline{position:absolute; bottom:96px; left:0; right:0; height:90px; z-index:0; opacity:.5;
+    display:flex; align-items:flex-end; gap:18px; padding:0 22px;}
+  #skyline .spire{width:26px; background:linear-gradient(180deg,#211b2c,#171221); border:1px solid #2c2438; border-bottom:none;}
 
   /* hotspots */
   .hot{position:absolute; z-index:5; cursor:pointer; display:flex; flex-direction:column;
     align-items:center; text-align:center; transition:filter .1s, transform .1s;}
-  .hot .art{display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 3px 5px #000);}
-  .hot:hover{filter:brightness(1.12);}
+  .hot .art{display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 4px 6px #000);}
+  .hot:hover{transform:translateY(-2px);}
   .hot.hovL:hover{filter:drop-shadow(0 0 9px var(--act)) brightness(1.12);}
-  .hot.hovR:hover{filter:drop-shadow(0 0 9px var(--look)) brightness(1.12);}
-  /* graybox placeholder bits */
-  .gbox{background:linear-gradient(180deg,var(--box2),var(--box)); border:2px solid #45503f;
-    border-radius:4px; color:#aeb8ad; font-family:'Courier New',monospace; font-size:10px;
-    display:flex; align-items:center; justify-content:center; text-align:center; letter-spacing:.04em;}
-  .tpose{font-size:40px; line-height:1;}
-  .tag{font-family:'Courier New',monospace; font-size:9px; letter-spacing:.06em; color:var(--warn);
-    background:#2a2212; border:1px solid #5a4a1e; border-radius:3px; padding:0 4px; margin-top:3px;}
-  .tag.wip{color:var(--warn);} .tag.done{color:var(--ok); background:#16241a; border-color:#1e3a2a;}
+  .hot .tpose{font-size:42px; line-height:1; filter:grayscale(.3) brightness(.95);}
+  .gbox{background:linear-gradient(180deg,var(--stone2),var(--stone)); border:2px solid #44485a;
+    border-radius:4px; color:#aab; font-family:'Courier New',monospace; font-size:10px;
+    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.4;}
+  .tag{font-family:'Courier New',monospace; font-size:9px; letter-spacing:.05em; color:var(--dim);
+    margin-top:3px; white-space:nowrap;}
 
-  /* hover affordance pill (what L / R do) */
-  #aff{position:absolute; z-index:40; pointer-events:none; display:none;
-    background:#0c1412; border:1px solid #45503f; border-radius:6px; padding:5px 9px;
+  /* hover affordance pill */
+  #aff{position:absolute; z-index:44; pointer-events:none; display:none;
+    background:#0b0e16; border:1px solid #3a3e50; border-radius:6px; padding:5px 9px;
     font-family:'Courier New',monospace; font-size:11px; white-space:nowrap; box-shadow:0 6px 18px #000;}
   #aff .nm{color:var(--ink); display:block; margin-bottom:3px; letter-spacing:.04em;}
-  #aff .row{color:var(--dim);} #aff .L{color:var(--act);} #aff .R{color:var(--look);}
+  #aff .L{color:var(--act);} #aff .R{color:var(--look);}
 
   /* inspect callout (right-click look) — read-only diegetic state */
-  #callout{position:absolute; z-index:38; max-width:288px; display:none;
-    background:#091513; border:1px solid var(--look); border-radius:6px; padding:10px 12px;
-    font-family:'Courier New',monospace; font-size:12px; color:#bfe2ef; line-height:1.55;
-    box-shadow:0 8px 26px #000;}
-  #callout .hd{color:var(--look); font-weight:bold; display:block; margin-bottom:5px; letter-spacing:.04em;}
-  #callout .k{color:#5f8a86;} #callout .nan{color:var(--spanner); font-weight:bold;}
-  #callout .wipv{color:var(--warn); font-weight:bold;} #callout .okv{color:var(--ok); font-weight:bold;}
-  #callout .lk{color:#caa;}
+  #callout{position:absolute; z-index:40; max-width:300px; display:none;
+    background:#0a1016; border:1px solid var(--look); border-radius:6px; padding:10px 12px;
+    font-family:'Courier New',monospace; font-size:12px; color:#cfe6f2; line-height:1.55; box-shadow:0 8px 26px #000;}
+  #callout .hd{color:var(--look); font-weight:bold; display:block; margin-bottom:5px; letter-spacing:.03em;}
+  #callout .k{color:#5f7e8a;} #callout .perf{color:var(--baron); font-weight:bold;}
+  #callout .gen{color:var(--pip); font-weight:bold;} #callout .of{color:var(--spanner); font-weight:bold;}
+  #callout .lk{color:#c7b39a;} #callout .miss{color:var(--warn); font-weight:bold;}
 
-  /* in-world dialogue bubble */
-  #bubble{position:absolute; z-index:42; max-width:340px; min-width:160px; display:none;
-    background:#12180f; border:2px solid #46512f; border-radius:10px; padding:11px 14px 14px;
-    box-shadow:0 10px 30px #000;}
+  /* in-world dialogue bubble + topic menu */
+  #bubble{position:absolute; z-index:46; max-width:360px; min-width:190px; display:none;
+    background:#15121d; border:2px solid #3c3550; border-radius:10px; padding:11px 14px 13px; box-shadow:0 10px 30px #000;}
   #bubble:after{content:""; position:absolute; bottom:-11px; left:30px; border-left:11px solid transparent;
-    border-right:11px solid transparent; border-top:11px solid #46512f;}
+    border-right:11px solid transparent; border-top:11px solid #3c3550;}
   #bubble .who{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:4px;}
-  #bubble .who.greg{color:var(--greg);} #bubble .who.auto{color:var(--auto);} #bubble .who.dbg{color:var(--ink);}
+  #bubble .who.baron{color:var(--baron);} #bubble .who.wend{color:var(--wend);} #bubble .who.tibbs{color:var(--tibbs);}
+  #bubble .who.pip{color:var(--pip);} #bubble .who.geo{color:var(--geo);} #bubble .who.dbg{color:var(--ink);}
   #bubble .tx{font-size:15px; line-height:1.5;} #bubble .tx i{color:var(--dim);}
-  #bubble .adv{position:absolute; right:10px; bottom:5px; color:var(--gold); font-size:13px; animation:bob 1s infinite;}
+  #bubble .adv{position:absolute; right:11px; bottom:5px; color:var(--gold); font-size:13px; animation:bob 1s infinite;}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+  #topics{margin-top:9px; display:none; flex-direction:column; gap:5px;}
+  #topics .top{background:#1d1830; border:1px solid #423a58; color:var(--ink); font-family:Georgia,serif;
+    font-size:13px; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer;}
+  #topics .top:hover{border-color:var(--gold); background:#261f3c;}
+  #topics .top.done{color:var(--dim);} #topics .top.leave{color:var(--dim); border-style:dashed;}
+  #topics .top:before{content:"▸ "; color:var(--gold);}
+  #topics .top.leave:before{content:"× "; color:var(--dim);}
 
-  /* toast / feedback line under the scene (passive, clears on next action) */
-  #status{margin-top:9px; min-height:42px; background:#11160f; border:1px solid #2e362e;
+  /* the Weeping Well conduit panel (Spanner minigame — in-scene, never trapping) */
+  #conduit{position:absolute; inset:14px; z-index:48; display:none; flex-direction:column;
+    background:rgba(9,8,14,.97); border:2px solid #3c3550; border-radius:8px; padding:14px 16px;}
+  #conduit h3{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--look); text-align:center; font-weight:normal;}
+  #conduit .csub{text-align:center; color:var(--dim); font-size:12px; font-style:italic; margin:3px 0 10px;}
+  #cflow{height:30px; border:1px solid #3a3e50; border-radius:5px; background:#0c0f16; overflow:hidden; position:relative; margin-bottom:4px;}
+  #cfill{position:absolute; inset:0 auto 0 0; width:100%; background:linear-gradient(90deg,#3a4a8a,#6f78b0); transition:width .5s ease;}
+  #cline{position:absolute; top:-3px; bottom:-3px; left:62%; width:2px; background:var(--warn);}
+  #cflowlbl{font-family:'Courier New',monospace; font-size:11px; color:var(--dim); margin-bottom:12px;}
+  #gates{display:flex; gap:12px; justify-content:center; margin-bottom:10px;}
+  .gate{flex:1; max-width:200px; background:#141220; border:2px solid #3a3550; border-radius:8px; padding:10px; text-align:center; cursor:pointer; transition:all .12s;}
+  .gate:hover{border-color:#5a5278;}
+  .gate .gn{font-family:'Courier New',monospace; font-size:12px; letter-spacing:.05em;}
+  .gate .gs{font-size:12px; color:var(--dim); margin-top:5px; font-style:italic;}
+  .gate.perf .gn{color:var(--baron);} .gate.gen .gn{color:var(--pip);} .gate.drain .gn{color:var(--look);}
+  .gate.open{box-shadow:inset 0 0 16px rgba(126,201,126,.18); border-color:#3a6a48;}
+  .gate.sealed{opacity:.7;}
+  #cmsg{min-height:34px; font-size:13.5px; line-height:1.45; color:var(--ink); text-align:center;}
+  #cmsg .okk{color:var(--ok);} #cmsg .sp{color:var(--spanner);}
+  #cback{align-self:center; margin-top:8px; background:none; border:1px solid #423a58; color:var(--dim);
+    font-family:Georgia,serif; font-size:13px; padding:6px 16px; border-radius:6px; cursor:pointer;}
+  #cback:hover{border-color:var(--ink); color:var(--ink);}
+
+  /* status / feedback line */
+  #status{margin-top:9px; min-height:44px; background:#11101a; border:1px solid #262232;
     border-radius:7px; padding:9px 14px; font-size:14.5px; line-height:1.5; color:var(--ink);}
   #status i{color:var(--dim);} #status b{color:var(--gold);} #status .sp{color:var(--spanner);}
   #status .okk{color:var(--ok);} #status .look{color:var(--look);}
 
   /* inventory */
   #invbar{margin-top:9px; display:flex; gap:11px; align-items:center;}
-  .slot{width:60px; height:60px; border:2px solid #3c463a; border-radius:8px; background:#141a14;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:26px;
-    position:relative; transition:all .12s;}
-  .slot:hover{border-color:#5a6657;}
-  .slot.sel{border-color:var(--spanner); box-shadow:0 0 13px var(--spanner); background:#241a12;}
-  .slot .cap{position:absolute; bottom:-15px; left:50%; transform:translateX(-50%);
-    font-size:9px; color:var(--dim); letter-spacing:.04em; white-space:nowrap;}
-  #invempty{color:var(--dim); font-style:italic; font-size:13px;}
-  #hintbtn{margin-left:auto; background:none; border:1px solid #3c463a; color:var(--dim);
+  .slot{width:60px; height:60px; border:2px solid #383448; border-radius:8px; background:#141220;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:25px; position:relative; transition:all .12s;}
+  .slot:hover{border-color:#564f70;}
+  .slot.sel{border-color:var(--spanner); box-shadow:0 0 13px var(--spanner); background:#241a14;}
+  .slot .cap{position:absolute; bottom:-15px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--dim); white-space:nowrap;}
+  #notebk{margin-left:6px; max-width:300px; font-size:12px; color:var(--dim); font-style:italic; line-height:1.4;}
+  #hintbtn{margin-left:auto; background:none; border:1px solid #383448; color:var(--dim);
     font-family:Georgia,serif; font-size:12px; padding:6px 11px; border-radius:6px; cursor:pointer;}
   #hintbtn:hover{border-color:var(--gold); color:var(--ink);}
 
-  #foot{text-align:center; color:#3a423a; font-size:11px; margin-top:11px; letter-spacing:.05em;}
-  #foot a{color:#586456;}
+  #foot{text-align:center; color:#34313f; font-size:11px; margin-top:11px; letter-spacing:.05em;}
+  #foot a{color:#52506a;}
 
   /* overlay (tracker / end) */
-  #overlay{position:fixed; inset:0; background:rgba(6,9,7,.95); z-index:60;
-    display:flex; align-items:center; justify-content:center; padding:18px;}
+  #overlay{position:fixed; inset:0; background:rgba(6,6,10,.95); z-index:60; display:flex; align-items:center; justify-content:center; padding:18px;}
   #overlay.hidden{display:none;}
-  #ovbox{width:min(640px,96vw); max-height:94vh; overflow:auto;}
+  #ovbox{width:min(650px,96vw); max-height:94vh; overflow:auto;}
   #ovbox .big{font-size:15px; letter-spacing:.24em; text-transform:uppercase; color:var(--gold); text-align:center; margin-bottom:4px;}
   #ovbox .small{text-align:center; color:var(--dim); font-style:italic; font-size:13px; margin-bottom:18px;}
-  #ovbox .ticket{background:#06090d; border:1px solid #1e3a2a; color:#9fd6a8;
-    font-family:'Courier New',monospace; font-size:13.5px; white-space:pre-wrap; line-height:1.6; padding:18px 22px; border-radius:5px;}
-  #ovbox .ticket.warn{border-color:#5a3a1e; color:var(--warn);}
+  #ovbox .ticket{background:#06080d; border:1px solid #2a2640; color:#b9bce0; font-family:'Courier New',monospace;
+    font-size:13.5px; white-space:pre-wrap; line-height:1.6; padding:18px 22px; border-radius:5px;}
+  #ovbox .ticket.warn{border-color:#5a4420; color:var(--warn);}
   #ovbox p{font-size:15.5px; line-height:1.6; margin:15px 4px;} #ovbox p i{color:var(--dim);}
   #ovbtns{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px;}
-  .ovbtn{background:#1a2417; border:2px solid var(--gold); color:var(--gold); font-family:Georgia,serif;
+  .ovbtn{background:#1c1830; border:2px solid var(--gold); color:var(--gold); font-family:Georgia,serif;
     font-size:15px; padding:11px 22px; border-radius:8px; cursor:pointer;}
-  .ovbtn:hover{background:#26331f;}
+  .ovbtn:hover{background:#272040;}
 </style>
 </head>
 <body>
 <div id="wrap">
   <h1>The Last Patch &nbsp;·&nbsp; core-loop POC</h1>
-  <div id="sub">BOGWILD — BUG-256 &nbsp;·&nbsp; <b>left-click</b> to interact, <i class="l">right-click</i> to look. Select an item, then use it on the world (or on another item).</div>
+  <div id="sub">GRIMHOLLOW — BUG-413 &nbsp;·&nbsp; <b>left-click</b> to interact, <i class="l">right-click</i> to look. A debugger sees a world's hidden state where everyone else sees scenery.</div>
 
   <div id="scene">
-    <div id="void"></div>
-    <div id="voidlbl">ZONE 2 — [ COMING SOON ]</div>
+    <div id="skyline"></div>
 
-    <!-- exit bridge to zone 2 (placeholder, not built) -->
-    <div class="hot" id="hs-bridge" data-id="bridge" style="top:74px; left:50%; transform:translateX(-50%);">
-      <div class="art"><div class="gbox" style="width:120px;height:30px;">[ bridge_zone2 ]</div></div>
-      <div class="tag wip" id="bridge-tag">state: COMING SOON</div>
+    <!-- the drizzling sky (flavor inspect) -->
+    <div class="hot" id="hs-sky" data-id="sky" style="top:10px; left:8px;">
+      <div class="art" style="font-size:26px; opacity:.8">🌧️</div>
     </div>
 
-    <!-- the roadmap sign -->
-    <div class="hot" id="hs-roadmap" data-id="roadmap" style="bottom:92px; left:4%;">
-      <div class="art"><div class="gbox" style="width:62px;height:74px;flex-direction:column;line-height:1.5;">ROAD&#8203;MAP<br>↓↓↓</div></div>
-      <div class="tag">soon™</div>
+    <!-- the Grief Leaderboard (compounding gag + clue) -->
+    <div class="hot" id="hs-board" data-id="board" style="top:54px; left:4%;">
+      <div class="art"><div class="gbox" id="board-box" style="width:96px;height:78px;flex-direction:column;">GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--baron)">1. Graveworth</span></div></div>
+      <div class="tag">notice board</div>
     </div>
 
-    <!-- reeds (placeholder foliage) — drops a stick -->
-    <div class="hot" id="hs-reeds" data-id="reeds" style="bottom:88px; left:21%;">
-      <div class="art tpose" id="reeds-art">🌿</div>
-      <div class="tag">[reeds]</div>
+    <!-- The Weeping Well — the shared-grief conduit (center) -->
+    <div class="hot" id="hs-well" data-id="well" style="bottom:96px; left:50%; transform:translateX(-50%);">
+      <div class="art"><div class="gbox" id="well-box" style="width:104px;height:66px;flex-direction:column;border-color:#4a4a6a;">THE WEEPING<br>WELL<br><span id="well-state" style="color:var(--spanner)">⮃ overflowing</span></div></div>
+      <div class="tag">shared sorrow</div>
     </div>
 
-    <!-- the crafting bench -->
-    <div class="hot" id="hs-bench" data-id="bench" style="bottom:90px; left:38%;">
-      <div class="art"><div class="gbox" style="width:74px;height:48px;">CRAFTING<br>BENCH</div></div>
-      <div class="tag wip" id="bench-tag">[WIP]</div>
+    <!-- Baron Graveworth — loudest mourner, red herring -->
+    <div class="hot" id="hs-baron" data-id="baron" style="bottom:98px; left:20%;">
+      <div class="art tpose">🎭</div>
+      <div class="tag" style="color:var(--baron)">Baron Graveworth</div>
     </div>
 
-    <!-- Greg, the eternal tutorial NPC, T-posed -->
-    <div class="hot" id="hs-greg" data-id="greg" style="bottom:92px; left:58%;">
-      <div class="art tpose" id="greg-art">🧍</div>
-      <div class="tag" id="greg-tag">NPC_TUTORIAL_01</div>
+    <!-- Wend — Keeper of the Weeping Well, the grief bureaucrat / informant -->
+    <div class="hot" id="hs-wend" data-id="wend" style="bottom:98px; left:39%;">
+      <div class="art tpose">🧎</div>
+      <div class="tag" style="color:var(--wend)">Wend</div>
     </div>
 
-    <!-- the placeholder vendor, also T-posed, selling one cloth at $NaN -->
-    <div class="hot" id="hs-vendor" data-id="vendor" style="bottom:92px; left:78%;">
-      <div class="art tpose" id="vendor-art">🧍</div>
-      <div class="tag" id="vendor-tag">[vendor]</div>
+    <!-- Tibbs — the cheerful tavern-keeper / gossip -->
+    <div class="hot" id="hs-tibbs" data-id="tibbs" style="bottom:100px; left:63%;">
+      <div class="art tpose">🍺</div>
+      <div class="tag" style="color:var(--tibbs)">Tibbs · "Drowned Rat"</div>
+    </div>
+
+    <!-- Pip — the quiet apprentice, patient zero (off to the side, easy to overlook) -->
+    <div class="hot" id="hs-pip" data-id="pip" style="bottom:96px; left:79%;">
+      <div class="art tpose" style="font-size:34px; opacity:.85">🧍</div>
+      <div class="tag" style="color:var(--pip)">a quiet boy</div>
+    </div>
+
+    <!-- the undertaker's grave (the gel-pen specificity locus) -->
+    <div class="hot" id="hs-grave" data-id="grave" style="bottom:188px; right:5%;">
+      <div class="art" style="font-size:24px; opacity:.7">🪦</div>
+      <div class="tag">a fresh grave</div>
     </div>
 
     <div class="ground"></div>
 
-    <div id="aff"><span class="nm"></span><span class="row"></span></div>
+    <div id="aff"><span class="nm"></span><span class="L"></span> <span class="R">R: look</span></div>
     <div id="callout"></div>
-    <div id="bubble"><div class="who"></div><div class="tx"></div><div class="adv">▸</div></div>
+    <div id="bubble"><div class="who"></div><div class="tx"></div><div class="adv">▸</div><div id="topics"></div></div>
+
+    <!-- the conduit minigame panel -->
+    <div id="conduit">
+      <h3>The Weeping Well — Conduit</h3>
+      <div class="csub">all the village's grief is piped through here. it is overflowing.</div>
+      <div id="cflow"><div id="cfill"></div><div id="cline"></div></div>
+      <div id="cflowlbl"></div>
+      <div id="gates"></div>
+      <div id="cmsg"></div>
+      <button id="cback">← step back from the well</button>
+    </div>
   </div>
 
-  <div id="status"><i>The starter swamp of <b>BOGWILD</b>. Everyone here is mid-tutorial and has been for a long time. Look around — right-click reads what the engine is really doing.</i></div>
+  <div id="status"><i>The village square of <b>Mournwell</b>, in the abandoned grimdark RPG <b>GRIMHOLLOW</b>. It will not stop drizzling. Everyone here is grieving, loudly, and nothing is getting done. Right-click anything to see what the engine is really doing.</i></div>
 
   <div id="invbar">
-    <span id="invempty" style="display:none">(pockets empty)</span>
+    <div class="slot" id="slot-spanner" data-item="spanner">🔧<span class="cap">Spanner</span></div>
+    <div id="notebk"></div>
     <button id="hintbtn">Stuck? Hint ▸</button>
   </div>
 
   <div id="foot">
-    THE LAST PATCH — core-loop POC · the jank is diegetic: this game was abandoned in early access · <a href="index.html">dialogue demo</a> · <a href="puzzle-proto.html">mechanic demo</a>
+    THE LAST PATCH — core-loop POC · the jank is diegetic: GRIMHOLLOW was abandoned after Act I · <a href="index.html">dialogue demo</a> · <a href="puzzle-proto.html">mechanic demo</a>
   </div>
 </div>
 
@@ -228,373 +268,436 @@
 
 <script>
 "use strict";
-const $=s=>document.querySelector(s);
 const el=id=>document.getElementById(id);
 
-/* ---------------- state ---------------- */
+/* ===================================================================== state */
 const S={
-  inHand:null,                 // selected inventory item id
-  inv:['spanner'],             // you always have the Spanner
-  vendorPrice:NaN,             // patch target A (numeric)
-  benchReady:false,            // patch target B (flag) — starts [WIP]
-  hasStick:false, hasCloth:false, hasTorch:false,
-  gaveTorch:false, tutorialComplete:false, bridgeOpen:false,
-  solved:false, hints:0,
-  dialogue:false               // a dialogue bubble is up; clicks advance it
+  inHand:null, hints:0, dialogue:false, conduit:false, solved:false,
+  // investigation flags (the deduction):
+  learnedMechanism:false,   // Wend explained the Well only carries "performed" grief
+  baronDeflated:false,      // inspected/learned the Baron's grief is fake
+  gossipUndertaker:false,   // Tibbs' tip: the drizzle worsened when old Crale died
+  metPip:false,             // talked to Pip
+  pipInspected:false,       // saw Pip's grief is genuine + overflowing
+  readGrave:false,          // read old Crale's grave (the specificity beat)
+  // the conduit minigame gate states:
+  gPerf:'open',             // performed channel: 'open' | 'throttle' | 'closed'
+  genSealed:true, genTorques:0, gGen:false,  // genuine channel: rusted shut; needs 3 torques then opens
+  gDrain:false
 };
+function knowsSource(){ return S.pipInspected && S.learnedMechanism; }
 
-/* item definitions */
-const ITEM={
-  spanner:{icon:'🔧', cap:'Spanner'},
-  stick:{icon:'🪵', cap:'[Stick]'},
-  cloth:{icon:'🧵', cap:'[Cloth]'},
-  torch:{icon:'🔥', cap:'[Torch]'}
-};
-
-/* ---------------- feedback (passive line; clears on next action) ---------------- */
+/* ===================================================================== feedback */
 function status(html){ el('status').innerHTML=html; }
 function clearTransient(){ el('callout').style.display='none'; }
-
-/* ---------------- hover affordance ---------------- */
-const NAME={ bridge:'Exit bridge', roadmap:'Roadmap sign', reeds:'Reeds', bench:'Crafting bench', greg:'“Greg”', vendor:'Vendor' };
-function leftVerb(id){
-  if(S.inHand) return 'use '+ITEM[S.inHand].cap.replace(/[\[\]]/g,'');
-  switch(id){
-    case 'reeds': return S.hasStick? 'examine':'take';
-    case 'greg': return 'talk';
-    case 'vendor': return 'browse';
-    case 'bench': return 'examine';
-    case 'bridge': return S.bridgeOpen? 'cross':'examine';
-    default: return 'examine';
-  }
+function note(){ // the "notebook" — a quiet running record of the deduction
+  const bits=[];
+  if(S.learnedMechanism) bits.push('the Well only carries <i>performed</i> grief');
+  if(S.baronDeflated) bits.push('the Baron is a fraud (glycerin tears)');
+  if(S.gossipUndertaker) bits.push('it worsened when the undertaker died');
+  if(S.pipInspected) bits.push('the boy Pip is the real source — genuine, uncapped');
+  el('notebk').innerHTML = bits.length? '<b style="color:var(--dim)">notebook:</b> '+bits.join(' · ') : '';
 }
-function showAff(id, hostEl){
+
+/* ===================================================================== hover affordance */
+const NAME={ sky:'The sky', board:'Grief Leaderboard', well:'The Weeping Well', baron:'Baron Graveworth',
+  wend:'Wend, Keeper of the Well', tibbs:'Tibbs', pip:'A quiet boy', grave:'A fresh grave' };
+function leftVerb(id){
+  if(S.inHand) return 'use '+S.inHand;
+  if(['baron','wend','tibbs','pip'].includes(id)) return 'talk';
+  if(id==='well') return 'approach';
+  return 'examine';
+}
+function showAff(id, host){
   const a=el('aff'); a.querySelector('.nm').textContent=NAME[id]||id;
-  a.querySelector('.row').innerHTML='<span class="L">L: '+leftVerb(id)+'</span>　<span class="R">R: look</span>';
-  const s=el('scene').getBoundingClientRect(), r=hostEl.getBoundingClientRect();
-  let x=r.left-s.left+r.width/2-60, y=r.top-s.top-46;
-  x=Math.max(6,Math.min(x, s.width-150)); if(y<4) y=r.bottom-s.top+8;
+  a.querySelector('.L').textContent='L: '+leftVerb(id);
+  const s=el('scene').getBoundingClientRect(), r=host.getBoundingClientRect();
+  let x=r.left-s.left+r.width/2-62, y=r.top-s.top-46;
+  x=Math.max(6,Math.min(x,s.width-150)); if(y<4) y=r.bottom-s.top+8;
   a.style.left=x+'px'; a.style.top=y+'px'; a.style.display='block';
 }
-function hideAff(){ el('aff').style.display='none'; }
+const hideAff=()=>el('aff').style.display='none';
 
-/* ---------------- inspect (right-click look) — read-only diegetic state ---------------- */
+/* ===================================================================== inspect (right-click look) */
 const STATE={
-  bridge:()=> S.bridgeOpen
-    ? `<span class="hd">[ASSET] bridge_zone2</span><span class="k">state:</span> <span class="okv">BUILT</span><br><span class="k">collision:</span> on<br><span class="k">leads to:</span> Zone 2 <span class="lk">(also [COMING SOON])</span>`
-    : `<span class="hd">[ASSET] bridge_zone2</span><span class="k">state:</span> <span class="wipv">[COMING SOON]</span><br><span class="k">collision:</span> off (you'd fall through)<br><span class="k">unlocks_when:</span> TUTORIAL_COMPLETE == true<br><span class="k">currently:</span> ${S.tutorialComplete?'<span class="okv">true</span>':'false'}`,
-  roadmap:()=>`<span class="hd">ROADMAP SIGN</span><span class="k">Q1:</span> Coming Soon<br><span class="k">Q2:</span> Coming Soon<br><span class="k">1.0 launch:</span> Coming Soon<br><span class="k">last updated:</span> <span class="lk">a long time ago</span>`,
-  reeds:()=> S.hasStick
-    ? `<span class="hd">[ASSET] reeds_placeholder</span><span class="k">drops:</span> [Stick] <span class="lk">(taken)</span><br><span class="k">texture:</span> missing`
-    : `<span class="hd">[ASSET] reeds_placeholder</span><span class="k">drops:</span> <span class="okv">[Stick]</span> ×1<br><span class="k">texture:</span> missing (hence the magenta)`,
-  bench:()=>`<span class="hd">CRAFTING_BENCH</span><span class="k">status:</span> ${S.benchReady?'<span class="okv">READY</span>':'<span class="wipv">[WIP]</span> (disabled)'}<br><span class="k">recipe[Torch]:</span> [Stick] + [Cloth]<br><span class="k">note:</span> ${S.benchReady?'accepts recipes':'won\'t accept recipes until status: READY'}`,
-  greg:()=>`<span class="hd">NPC_TUTORIAL_01 "Greg"</span><span class="k">role:</span> onboarding guide (devoted)<br><span class="k">newcomers_guided:</span> 12,000<br><span class="k">advances_when:</span> ${S.tutorialComplete?'<span class="okv">done — he graduated you</span>':'player crafts their first [Torch]'}<br><span class="k">privately_afraid_of:</span> what is past "continue"`,
-  vendor:()=>`<span class="hd">VENDOR_PLACEHOLDER</span><span class="k">stock:</span> 1× ${S.hasCloth?'[Cloth] <span class="lk">(sold)</span>':'<span class="okv">[Cloth]</span>'}<br><span class="k">price:</span> ${isNaN(S.vendorPrice)?'<span class="nan">$NaN</span>':'<span class="okv">$'+S.vendorPrice+'</span>'}<br><span class="k">note:</span> ${isNaN(S.vendorPrice)?'missing default — the till can\'t resolve $NaN, so it never sells':'till resolves; just take it'}`
+  sky:()=>`<span class="hd">[ASSET] sky_grimdark</span><span class="k">weather:</span> drizzle<br><span class="k">since:</span> always<br><span class="k">forecast:</span> drizzle, with a chance of drizzle`,
+  board:()=>`<span class="hd">GRIEF LEADERBOARD</span><span class="k">1.</span> Baron Graveworth <span class="lk">— "the Thrice-Bereaved"</span><br><span class="k">2.</span> Widow Ashlace <span class="lk">(contesting)</span><br><span class="k">...</span><br><span class="k">last:</span> "a quiet boy" — <span class="k">grief logged:</span> ${S.metPip?'<span class="of">none (never filed)</span>':'none'}<br><span class="k">sort key:</span> grief, <span class="perf">as performed</span>`,
+  baron:()=>`<span class="hd">BARON GRAVEWORTH III</span><span class="k">rank:</span> #1 (defends title)<br><span class="k">grief:</span> 8,000 <span class="perf">(performed, for status)</span><br><span class="k">tears:</span> glycerin <span class="lk">(bulk-purchased)</span><br><span class="k">leaking:</span> false<br><span class="k">backstory:</span> escalating, unverified`,
+  wend:()=>`<span class="hd">WEND — KEEPER OF THE WELL</span><span class="k">role:</span> grief intake &amp; routing<br><span class="k">grief:</span> 0 <span class="lk">(processed too much to feel any)</span><br><span class="k">knows:</span> exactly how the Well is plumbed<br><span class="k">backlog:</span> 400 bereavements, unfiled`,
+  tibbs:()=>`<span class="hd">TIBBS — THE DROWNED RAT</span><span class="k">grief:</span> 0 <span class="lk">(business is booming)</span><br><span class="k">mood:</span> <span class="okv" style="color:var(--ok)">cheerful</span> <span class="lk">(the one in town)</span><br><span class="k">hears:</span> everything, eventually`,
+  pip:()=> S.metPip
+    ? `<span class="hd">PIP HARTWOOD — undertaker's apprentice</span><span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="gen">(genuine, uncapped)</span><br><span class="k">source:</span> <span class="gen">true</span> — <span class="k">leaking →</span> <span class="of">shared_state</span><br><span class="k">grieves:</span> old Crale (his master)<br><span class="k">filed it:</span> <span class="miss">never — there is no form for the real kind</span>`
+    : `<span class="hd">[NPC] "a quiet boy"</span><span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="gen">(genuine?)</span><br><span class="k">status:</span> not performing — <span class="lk">so nobody's looking</span><br><span class="k">note:</span> talk to him; the loud ones aren't the source`,
+  grave:()=>`<span class="hd">[OBJECT] fresh grave</span><span class="k">here lies:</span> CRALE, undertaker of Mournwell<br><span class="k">buried by:</span> his apprentice, alone<br><span class="k">attendance at funeral:</span> 1<br><span class="k">epitaph:</span> <span class="lk">unfinished — he was carving his own</span>`,
+  well:()=> S.solved
+    ? `<span class="hd">THE WEEPING WELL — conduit</span><span class="k">overflow:</span> <span style="color:var(--ok)">drained</span><br><span class="k">channels:</span> [performed] + <span class="gen">[genuine]</span> ✓<br><span class="k">status:</span> the real kind finally has somewhere to go`
+    : `<span class="hd">THE WEEPING WELL — conduit</span><span class="k">function:</span> pipes the village's grief into one shared cistern<br><span class="k">intake channels:</span> <span class="perf">[performed]</span> only<br><span class="k">genuine-grief channel:</span> <span class="miss">[ not implemented ]</span><br><span class="k">overflow:</span> <span class="of">ACTIVE</span> — flooding from ${knowsSource()?'<span class="gen">pip</span>':'an un-named source'}`
 };
-function inspect(id, hostEl){
+function inspect(id, host){
   clearTransient();
+  if(id==='pip') S.pipInspectedSeen=true;      // seeing the state counts toward suspicion
   if(!STATE[id]) return;
   const c=el('callout'); c.innerHTML=STATE[id]();
-  const s=el('scene').getBoundingClientRect(), r=hostEl.getBoundingClientRect();
-  let x=r.left-s.left+r.width/2-144; x=Math.max(6,Math.min(x, s.width-296));
+  const s=el('scene').getBoundingClientRect(), r=host.getBoundingClientRect();
+  let x=r.left-s.left+r.width/2-150; x=Math.max(6,Math.min(x,s.width-308));
   let y=r.top-s.top-12; if(y<6) y=r.bottom-s.top+8;
-  c.style.left=x+'px'; c.style.top=Math.min(y, s.height-150)+'px'; c.style.display='block';
-  // a quiet "what the debugger sees" gloss in the status line
+  c.style.left=x+'px'; c.style.top=Math.min(y,s.height-160)+'px'; c.style.display='block';
+  // a "what the debugger sees" gloss + investigation progress
   const gloss={
-    bridge:'The way to Zone 2. The engine never built it — it\'s a placeholder gated on the tutorial finishing.',
-    roadmap:'Four quarters of "Coming Soon." This sign is the most honest thing in the game.',
-    reeds:'Untextured reeds. Right-clicking, you can see they drop a <span class="okk">[Stick]</span>.',
-    bench:S.benchReady?'The bench is live now.':'The crafting bench is flagged <b>[WIP]</b> — disabled until someone sets it READY.',
-    greg:'The whole tutorial advances on one thing: this man watching you craft your first Torch.',
-    vendor:isNaN(S.vendorPrice)?'He has the <span class="okk">[Cloth]</span> you need — but the price is <span class="sp">$NaN</span>, so the sale can never complete.':'Price patched. The cloth is yours for the taking.'
+    sky:'It has always drizzled here. That part isn\'t the bug; it\'s the genre.',
+    board:'They rank each other by suffering. The boy at the bottom never even filed his — which is strange, because something is flooding this town from <i>somewhere.</i>',
+    baron:'Eight thousand points of grief, and every tear of it store-bought. The loudest mourner is a <b>fraud</b>. Whatever\'s drowning this town, it isn\'t him.',
+    wend:'She feels nothing and knows everything. If anyone can tell you how the grief actually <i>moves</i> through this place, it\'s her.',
+    tibbs:'The only cheerful man in Mournwell. He hears all the gossip — worth a word.',
+    pip: S.metPip?'<span class="look">There it is.</span> His grief is <b>genuine</b>, uncapped, and leaking straight into the shared state. He\'s your source — and he never said a word.':'A boy too quiet to rank. His grief reads <b>genuine</b> and it\'s overflowing — the opposite of the performers. Worth talking to.',
+    grave:'One real death in a town that performs death for a living — and exactly one person came to mourn it.',
+    well: S.solved?'Fixed. The real kind has a channel now.':'The town\'s grief all funnels through here, and the cistern only has a pipe for the <b>performed</b> kind. Genuine grief has <b>nowhere to go</b> — so it overflows. That\'s the bug.'
   };
   status('<span class="look">You look closely.</span> <i>'+(gloss[id]||'')+'</i>');
+  if(id==='baron') S.baronDeflated=true;
+  if(id==='well') S.learnedMechanism=true;     // reading the Well also teaches the mechanism
+  if(id==='grave'){ S.readGrave=true; }
+  if(id==='pip' && S.metPip) S.pipInspected=true;
+  note();
 }
 
-/* ---------------- inventory ---------------- */
+/* ===================================================================== inventory */
 function renderInv(){
-  const bar=el('invbar');
-  [...bar.querySelectorAll('.slot')].forEach(n=>n.remove());
-  const anchor=el('invempty');
-  el('invempty').style.display = S.inv.length? 'none':'inline';
-  S.inv.forEach(id=>{
-    const d=document.createElement('div'); d.className='slot'+(S.inHand===id?' sel':'');
-    d.dataset.item=id; d.innerHTML=ITEM[id].icon+'<span class="cap">'+ITEM[id].cap+'</span>';
-    d.addEventListener('click', e=>{ e.stopPropagation(); clickInvItem(id); });
-    d.addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation(); inspectItem(id); });
-    bar.insertBefore(d, anchor.nextSibling);
-  });
+  el('slot-spanner').classList.toggle('sel', S.inHand==='spanner');
 }
-function select(id){ S.inHand = (S.inHand===id? null : id); renderInv();
-  status(S.inHand? '<i>Holding the <b>'+ITEM[id].cap.replace(/[\[\]]/g,'')+'</b>. Left-click where to use it — on the world, or on another item. (Right-click empty to put it away.)</i>'
-                 : '<i>Put it away.</i>'); }
-function clickInvItem(id){
-  clearTransient();
-  if(S.inHand && S.inHand!==id){ return combine(S.inHand, id); }
-  select(id);
-}
-function addItem(id){ if(!S.inv.includes(id)) S.inv.push(id); renderInv(); }
-function removeItem(id){ S.inv=S.inv.filter(x=>x!==id); if(S.inHand===id) S.inHand=null; renderInv(); }
-const ITEMDESC={
-  spanner:`<span class="hd">[ITEM] Spanner</span><span class="k">does:</span> writes values you can see<br><span class="k">size field:</span> MAX <span class="lk">(the requisition form had no validation)</span>`,
-  stick:`<span class="hd">[ITEM] [Stick]</span><span class="k">type:</span> crafting reagent<br><span class="k">part of:</span> recipe[Torch]`,
-  cloth:`<span class="hd">[ITEM] [Cloth]</span><span class="k">type:</span> crafting reagent<br><span class="k">part of:</span> recipe[Torch]`,
-  torch:`<span class="hd">[ITEM] [Torch]</span><span class="k">type:</span> tutorial objective<br><span class="k">satisfies:</span> Greg`
-};
-function inspectItem(id){ clearTransient();
-  const c=el('callout'); c.innerHTML=ITEMDESC[id]||('<span class="hd">'+ITEM[id].cap+'</span>');
-  c.style.left='12px'; c.style.top=(el('scene').getBoundingClientRect().height-150)+'px'; c.style.display='block';
-  status('<span class="look">You turn the '+ITEM[id].cap.replace(/[\[\]]/g,'')+' over in your hands.</span>');
+function selectItem(id){
+  S.inHand=(S.inHand===id?null:id); renderInv();
+  status(S.inHand? '<i>Holding the <b>Spanner</b>. Left-click what to use it on. (It writes values you can see — out in the world. Right-click empty to put it away.)</i>'
+                 : '<i>You stow the Spanner.</i>');
 }
 
-/* ---------------- combine two items ---------------- */
-function combine(a,b){
-  const set=[a,b].sort().join('+');
-  if(set==='cloth+stick'){
-    status('<i>A Stick and a Cloth. That\'s a Torch, per the recipe — but you can\'t assemble it in your pockets. You need the <b>crafting bench</b>.</i>');
-    return;
-  }
-  if([a,b].includes('spanner')){
-    const other=a==='spanner'?b:a;
-    status('<i>You can\'t patch an inventory item with the Spanner — it writes values out in the <b>world</b>. Try using it on the '+(other?ITEM[other].cap.replace(/[\[\]]/g,''):'thing')+' where it sits.</i>');
-    return;
-  }
-  status('<i>Those two don\'t combine.</i>');
-}
-
-/* ---------------- left-click interact ---------------- */
-function interact(id, hostEl){
+/* ===================================================================== left-click interact */
+function interact(id, host){
   clearTransient();
-  if(S.inHand) return useItemOn(S.inHand, id, hostEl);
+  if(S.inHand) return useSpanner(id, host);
   switch(id){
-    case 'reeds': return takeStick();
-    case 'vendor': return browseVendor();
-    case 'greg': return talkGreg();
-    case 'bench': return status('<i>A crafting bench. '+(S.benchReady?'It\'s live.':'Its status tag reads <b>[WIP]</b>. Look closer (right-click) to see what that blocks.')+'</i>');
-    case 'roadmap': return status('<i>The roadmap. Every milestone says "Coming Soon." Someone has drawn a tiny sad face next to "1.0 launch."</i>');
-    case 'bridge':
-      if(S.bridgeOpen) return leaveBog();
-      return status('<i>The bridge to Zone 2 is a <b>[COMING SOON]</b> placeholder — no collision; you\'d drop straight through. Right-click it to see what it\'s waiting on.</i>');
+    case 'baron': return talk('baron');
+    case 'wend': return talk('wend');
+    case 'tibbs': return talk('tibbs');
+    case 'pip': return talk('pip');
+    case 'well': return openConduit();
+    case 'board': return status('<i>A leaderboard of grief. Citizens are ranked by how much they\'ve suffered — as adjudicated, apparently, by volume. The Baron is winning. A small hand-lettered card at the bottom reads "appeals heard Thursdays."</i>');
+    case 'grave': return status('<i>A fresh grave, the soil still dark. Someone has left a single undertaker\'s chisel on it, handle worn smooth. <i class="look">(Right-click to read it.)</i></i>');
+    case 'sky': return status('<i>You hold your hand out. It drizzles into your palm. It will do this forever; it is load-bearing weather.</i>');
   }
-}
-function takeStick(){
-  if(S.hasStick) return status('<i>The reeds have nothing else to give. (They barely had the one Stick.)</i>');
-  S.hasStick=true; addItem('stick'); el('reeds-art').style.opacity='.4';
-  status('<span class="okk">Took [Stick].</span> <i>It clips through your hand a little. Early access.</i>');
-}
-function browseVendor(){
-  if(S.hasCloth) return status('<i>The vendor\'s stock is empty now. He gives you a frozen, grateful T-pose.</i>');
-  if(isNaN(S.vendorPrice)){
-    status('<i>The buy prompt reads <b>PURCHASE [Cloth] FOR $NaN</b>. You press it. Nothing happens. It will never happen — the price never got a real value. <i class="look">(A debugger could just... set one.)</i></i>');
-    return;
-  }
-  S.hasCloth=true; addItem('cloth'); el('vendor-art').style.opacity='.55';
-  status('<span class="okk">Bought [Cloth] for $0.</span> <i>The till finally dings. The vendor\'s T-pose seems, somehow, relieved.</i>');
 }
 
-/* ---------------- use an item on a hotspot (the Spanner does the patching) ---------------- */
-function useItemOn(item, id, hostEl){
-  // --- the Spanner: write a value you can see ---
-  if(item==='spanner'){
-    if(id==='vendor'){
-      if(!isNaN(S.vendorPrice)) return status('<i>The price already reads $'+S.vendorPrice+'. Nothing left to fix here.</i>');
-      S.vendorPrice=0; S.inHand=null; renderInv(); el('vendor-tag').textContent='price: $0'; el('vendor-tag').className='tag done';
-      status('<span class="sp">Patched.</span> <b>vendor.price: $NaN → $0</b>. <i>The till resolves with a hopeful chime. Now you can actually <b>take</b> the [Cloth] (left-click the vendor).</i>');
-      return;
-    }
-    if(id==='bench'){
-      if(S.benchReady) return status('<i>The bench already reads READY.</i>');
-      S.benchReady=true; S.inHand=null; renderInv(); el('bench-tag').textContent='READY'; el('bench-tag').className='tag done';
-      status('<span class="sp">Patched.</span> <b>bench.status: [WIP] → READY</b>. <i>Something deep in the build pipeline sighs and turns over. The bench accepts recipes now.</i>');
-      return;
-    }
-    if(id==='bridge'){
-      return status('<i>You set the Spanner to the bridge\'s <b>state</b> — but it\'s read-locked to <b>COMING SOON</b> by the tutorial gate. The build won\'t let you fake a finished zone; you have to actually trip TUTORIAL_COMPLETE. <i class="look">(That\'s Greg\'s job to grant.)</i></i>');
-    }
-    if(id==='greg'){
-      return status('<i>You raise the Spanner at Greg. His T-pose does not flinch — there\'s nothing broken in him to torque. <i>(He is, against all odds, working as intended.)</i></i>');
-    }
-    if(id==='roadmap'){
-      return status('<i>You could patch the sign to say "Done," but a lie on a roadmap is just a roadmap. Nothing here is yours to write.</i>');
-    }
-    if(id==='reeds'){ return status('<i>Nothing to torque in a clump of placeholder reeds.</i>'); }
-  }
-  // --- crafting reagents: assemble the Torch at a READY bench ---
-  if((item==='stick'||item==='cloth') && id==='bench'){
-    if(!S.benchReady) return status('<i>The bench rejects the reagent — its status is still <b>[WIP]</b>. (You may need to <span class="sp">patch</span> it to READY first.)</i>');
-    if(!(S.hasStick && S.hasCloth)) return status('<i>The recipe needs <b>both</b> [Stick] and [Cloth]. You\'re short one. '+(!S.hasStick?'(No Stick — try the reeds.)':'(No Cloth — the vendor has one.)')+'</i>');
-    S.hasTorch=true; removeItem('stick'); removeItem('cloth'); addItem('torch'); S.inHand=null; renderInv();
-    status('<span class="okk">Crafted [Torch].</span> <i>Your first craft in BOGWILD. Twelve thousand newcomers never got this far. Now — show Greg.</i>');
-    return;
-  }
-  // --- give the Torch to Greg → graduate → tutorial complete ---
-  if(item==='torch' && id==='greg'){ return graduate(); }
-  if(item==='torch'){ return status('<i>You wave the Torch around. It\'s warm and clips through everything. The person who wants to see it is <b>Greg</b>.</i>'); }
-  // generic fall-through for reagents used in the wrong place
-  if(item==='stick'||item==='cloth'){
-    return status('<i>That goes on the <b>crafting bench</b>, not here.</i>');
-  }
-  status('<i>Nothing happens.</i>');
+/* ===================================================================== the Spanner (writes values you can see) */
+function useSpanner(id, host){
+  if(id==='well'){ S.inHand=null; renderInv(); return openConduit(); }
+  if(id==='board'){ S.inHand=null; renderInv();
+    return status('<i>You could rewrite the grief rankings with a twist of the Spanner — but doctoring a misery leaderboard is the one crime this town would actually prosecute. <i>(Also it wouldn\'t fix anything. The numbers are downstream of the real problem.)</i></i>'); }
+  if(id==='baron'){ S.inHand=null; renderInv();
+    return status('<i>You raise the Spanner toward the Baron\'s grief value. It reads <span class="sp">8,000 (performed)</span> — you <i>could</i> set it to zero, but it\'s a stage prop; zeroing a fake number changes nothing but his mood. The flood isn\'t coming from him.</i>'); }
+  if(id==='pip'){ S.inHand=null; renderInv();
+    return status('<i>You point the Spanner at the boy\'s grief and very nearly clamp it to spec — the quick fix, the <i>George</i> fix. Then you stop. Numbing the one real feeling in town isn\'t a patch; it\'s a cover-up. The leak isn\'t that his grief is too big. It\'s that the Well has <b>no channel</b> for it. Fix the <b>Well</b>, not the boy.</i>'); }
+  if(id==='wend'||id==='tibbs'){ S.inHand=null; renderInv();
+    return status('<i>You wave the Spanner at '+(id==='wend'?'Wend':'Tibbs')+'. '+(id==='wend'?'"Mind the cistern, not me," she says, not looking up.':'"Careful with that, you\'ll void the warranty on my mood."')+'</i>'); }
+  if(id==='grave'){ S.inHand=null; renderInv();
+    return status('<i>There is nothing here to torque. Some things are not bugs. <i>(You put the Spanner away and leave the chisel where it is.)</i></i>'); }
+  if(id==='sky'){ S.inHand=null; renderInv();
+    return status('<i>You threaten the weather with a wrench. The drizzle, unmoved, continues. <span class="look">forecast: drizzle.</span></i>'); }
+  S.inHand=null; renderInv(); status('<i>Nothing to change there.</i>');
 }
 
-/* ---------------- dialogue (in-world bubbles, one consistent advance rule) ---------------- */
-let DQ=[], dEnd=null;
-function bubbleAt(targetId){
-  const b=el('bubble');
-  const host=targetId? document.querySelector('[data-id="'+targetId+'"]'):null;
-  const s=el('scene').getBoundingClientRect();
+/* ===================================================================== dialogue + topic trees */
+let DQ=[], dEnd=null, dWho='', dCls='';
+function bubbleAt(id){
+  const b=el('bubble'), s=el('scene').getBoundingClientRect();
+  const host=id?document.querySelector('[data-id="'+id+'"]'):null;
+  b.style.transform='';
   if(host){ const r=host.getBoundingClientRect();
-    let x=r.left-s.left+r.width/2-40; x=Math.max(10,Math.min(x,s.width-350));
+    let x=r.left-s.left+r.width/2-44; x=Math.max(10,Math.min(x,s.width-370));
     b.style.left=x+'px'; b.style.bottom=(s.height-(r.top-s.top)+14)+'px'; b.style.top='auto';
-  } else { b.style.left='50%'; b.style.bottom='auto'; b.style.top='30px'; b.style.transform='translateX(-50%)'; }
+  } else { b.style.left='50%'; b.style.top='28px'; b.style.bottom='auto'; b.style.transform='translateX(-50%)'; }
 }
-function runDialogue(beats, onEnd, anchorId){
+function speak(beats, onEnd, anchor){
   DQ=beats.slice(); dEnd=onEnd||null; S.dialogue=true; clearTransient(); hideAff();
-  bubbleAt(anchorId); el('bubble').style.display='block'; nextLine();
+  el('topics').style.display='none'; bubbleAt(anchor); el('bubble').style.display='block'; nextLine();
 }
 function nextLine(){
-  if(!DQ.length){ el('bubble').style.display='none'; S.dialogue=false; const f=dEnd; dEnd=null; if(f) f(); return; }
+  if(!DQ.length){ const f=dEnd; dEnd=null; if(f){ f(); } else endDialogue(); return; }
   const [who,tx,cls]=DQ.shift();
   const b=el('bubble');
   b.querySelector('.who').textContent=who||''; b.querySelector('.who').className='who '+(cls||'');
   b.querySelector('.tx').innerHTML=tx;
-  b.querySelector('.adv').style.display=DQ.length? 'block':'none';
+  b.querySelector('.adv').style.display=DQ.length?'block':'none';
+}
+function endDialogue(){ el('bubble').style.display='none'; el('topics').style.display='none'; S.dialogue=false; }
+
+/* topic menus (GK/MI-style). show()=available; gives info; some unlock flags. */
+const TOPICS={
+  baron:{ who:'Baron Graveworth', anchor:'baron', cls:'baron',
+    intro:[['Baron Graveworth','<i>(seizing your hands)</i> You have the look of one acquainted with WOE. Sit. Weep. I am the Baron Graveworth, <b>Thrice-Bereaved</b> — and that is only the headline.','baron']],
+    topics:[
+      {id:'sorrow', label:'Tell me about your sorrow. (You won\'t be able to stop him.)', seq:[
+        ['Baron Graveworth','My father was slain. My mother — also slain. My OTHER mother, slain in a SEPARATE and MORE INTERESTING incident. My grief shakes the very firmament! It is I who darkens these skies!','baron'],
+        ['DEBUGGER','It was drizzling before you were born.','dbg'],
+        ['Baron Graveworth','<i>(wounded)</i> ...A pre-existing drizzle. Which my arrival <b>deepened.</b>','baron']]},
+      {id:'claim', label:'Are you the cause of all this?', seq:[
+        ['Baron Graveworth','<b>Obviously.</b> I am Mournwell\'s foremost wellspring of anguish. Rank one. Check the board.','baron'],
+        ['DEBUGGER','<i>(you already checked; his tears are glycerin)</i>','dbg'],
+        ['Baron Graveworth','<i>(not noticing)</i> Should the Well be flooding, it flatters me to think it flooded for <i>me.</i>','baron']],
+        on:()=>{ S.baronDeflated=true; }},
+      {id:'others', label:'Is anyone here actually sad?', seq:[
+        ['Baron Graveworth','<i>(appalled)</i> "Actually." As though grief were a contest of <i>authenticity</i> and not — as any civilized person knows — <b>presentation.</b> The boy at the end of the lane doesn\'t even <i>compete.</i> No backstory on file. Pathetic. <i>(beat)</i> ...He buried old Crale by himself, mind. Didn\'t make a thing of it. No <i>technique.</i>','baron']],
+        on:()=>{ S.gossipUndertaker=true; }}
+    ]},
+  wend:{ who:'Wend', anchor:'wend', cls:'wend',
+    intro:[['Wend','<i>(not looking up from a ledger)</i> Bereavement intake. Take a number. The number is four hundred and one.','wend']],
+    topics:[
+      {id:'how', label:'How does the Weeping Well work?', seq:[
+        ['Wend','Everyone\'s grief pipes into the one cistern — the Well. Keeps it tidy. One sorrow, shared, on tap. I route it.','wend'],
+        ['Wend','It only takes grief that\'s been <b>filed.</b> Performed. Declared. <i>(she taps the ledger)</i> Properly registered sorrow, in the approved form. That\'s the only channel the cistern was ever built with.','wend'],
+        ['DEBUGGER','And grief that <i>isn\'t</i> performed? The real kind?','dbg'],
+        ['Wend','<i>(a long pause; the first crack in her procedure)</i> ...There\'s no form for that one. There was never a channel for it. <i>(back to flat)</i> It just has to go somewhere.','wend']],
+        on:()=>{ S.learnedMechanism=true; }},
+      {id:'overflow', label:'Why is it overflowing now?', show:()=>S.learnedMechanism, seq:[
+        ['Wend','Started a fortnight back. Quiet at first. Now the cistern won\'t hold it and everyone\'s drowning in a sorrow that isn\'t theirs — and they <i>love</i> it, because borrowed grief outranks none at all.','wend'],
+        ['Wend','Whatever\'s flooding me, it\'s not <i>filed.</i> It came in through no channel I built. <i>(beat)</i> Which means it\'s the kind I was never equipped to carry.','wend']]},
+      {id:'fix', label:'Can the Well be re-plumbed?', show:()=>S.learnedMechanism, seq:[
+        ['Wend','You\'d have to open a channel that was never there. <i>(she looks at your Spanner for the first time)</i> ...Huh. Maybe you would, at that. Mind the overflow — it fights back. Clamp the wrong pipe and it just floods worse.','wend']]}
+    ]},
+  tibbs:{ who:'Tibbs', anchor:'tibbs', cls:'tibbs',
+    intro:[['Tibbs','<i>(polishing a tankard, beaming)</i> Welcome to the Drowned Rat! Business has never been better. Misery\'s up forty percent and EVERY soul of \'em drinks. To your good health — or your bad one, we do a discount for that.','tibbs']],
+    topics:[
+      {id:'gossip', label:'What\'s the talk around town?', seq:[
+        ['Tibbs','Talk? It\'s all weeping, mostly. But here\'s a thing — the drizzle went proper Biblical about a fortnight back. Same week old Crale the undertaker passed.','tibbs'],
+        ['Tibbs','Funny part: nobody mourned him. Whole town\'s in the grief business and not one of \'em came to bury the man who buried <i>them.</i> Too busy out-sobbing each other. Only his apprentice showed. Quiet lad. Pip.','tibbs']],
+        on:()=>{ S.gossipUndertaker=true; }},
+      {id:'baron', label:'What do you make of the Baron?', seq:[
+        ['Tibbs','Graveworth? Buys his tears by the crate. I deliver \'em. <i>(taps his nose)</i> Don\'t tell the leaderboard.','tibbs']],
+        on:()=>{ S.baronDeflated=true; }}
+    ]},
+  pip:{ who:'Pip', anchor:'pip', cls:'pip',
+    intro:[['Pip','<i>(quietly, not performing any of it)</i> Oh — hello. You don\'t have to stop. Everyone\'s very busy being sad. I don\'t want to be in the way.','pip']],
+    topics:[
+      {id:'you', label:'Are you alright?', seq:[
+        ['Pip','I\'m fine. <i>(he is not fine; he simply isn\'t doing a bit about it)</i> It\'s just been a hard couple of weeks. Crale — my master — he passed. I\'ve been minding the workshop.','pip'],
+        ['Pip','I keep meaning to go and grieve him proper, the way they do here, with the wailing and the rankings. But it never comes out like theirs. Mine\'s just... quiet. And big. I don\'t know where to put it.','pip']],
+        on:()=>{ S.metPip=true; if(S.pipInspectedSeen) S.pipInspected=true; note(); }},
+      {id:'crale', label:'Tell me about Crale.', show:()=>S.metPip, seq:[
+        ['Pip','He let me carve the practice stones. Said I had a steady hand for letters. <i>(small)</i> He was carving his own headstone when he went — got as far as the name. I haven\'t been able to finish it. Feels like saying it\'s really over.','pip'],
+        ['DEBUGGER','<i>(you saw the stone. one word, then nothing.)</i>','dbg']]},
+      {id:'filed', label:'Did you ever file your grief at the Well?', show:()=>S.metPip&&S.learnedMechanism, seq:[
+        ['Pip','File it? <i>(almost laughs)</i> There\'s a form for a slain father. Three for a cursed bloodline. None for... this. The plain kind. So I never did. It just sort of... goes somewhere when I\'m not looking.','pip'],
+        ['DEBUGGER','<i>It goes into the Well. With nowhere to be filed, it\'s been overflowing into the whole town.</i>','dbg'],
+        ['Pip','<i>(stricken)</i> ...I\'ve been making everyone sad? I\'m so sorry. I didn\'t— I didn\'t make a <i>thing</i> of it, I swear, I tried so hard not to—','pip'],
+        ['DEBUGGER','I know. That\'s exactly why nobody noticed. Sit tight. I can fix the plumbing — not you.','dbg']],
+        on:()=>{ S.pipInspected=true; note(); }}
+    ]}
+};
+function talk(id){
+  const T=TOPICS[id];
+  speak(T.intro, ()=>showTopics(id), T.anchor);
+}
+function showTopics(id){
+  const T=TOPICS[id], box=el('topics'); box.innerHTML='';
+  T.topics.forEach(t=>{
+    if(t.show && !t.show()) return;
+    const b=document.createElement('button'); b.className='top'+(t._done?' done':'');
+    b.textContent=t.label;
+    b.onclick=(e)=>{ e.stopPropagation();
+      el('topics').style.display='none';
+      speak(t.seq, ()=>{ t._done=true; if(t.on) t.on(); note(); showTopics(id); }, T.anchor);
+    };
+    box.appendChild(b);
+  });
+  const leave=document.createElement('button'); leave.className='top leave'; leave.textContent='Leave';
+  leave.onclick=(e)=>{ e.stopPropagation(); endDialogue(); maybeNudge(); };
+  box.appendChild(leave);
+  el('bubble').querySelector('.adv').style.display='none';
+  el('topics').style.display='flex';
+}
+function maybeNudge(){
+  if(S.solved) return;
+  if(knowsSource()) status('<i>You\'ve got it: the boy\'s genuine grief is flooding the Well, which was only ever built for the <i>performed</i> kind. The fix is at the <b>Well</b> — open a channel for the real thing. <span class="sp">Use the Spanner on the Well.</span></i>');
 }
 
-/* ---------------- Greg ---------------- */
-let gregMet=false;
-function talkGreg(){
-  if(S.tutorialComplete) return runDialogue([
-    ['Greg','<i>(no longer T-posed; pacing)</i> Continue. I said continue and the world... continued. <i>(quietly)</i> I onboarded twelve thousand people to a door I was afraid to open.','greg'],
-    ['Greg','Anyway! New objective. <i>(brightening)</i> I\'m writing the Zone 2 tutorial. Step one: "Use [WASD] to—" <i>(squints at the void)</i> ...there\'s no floor in Zone 2. I should file that.','greg']
-  ], null, 'greg');
-  if(!gregMet){ gregMet=true; return runDialogue([
-    ['Greg','<i>(brightly, mid-T-pose)</i> Press [E] to— oh! A <b>new face</b>. Welcome to BOGWILD! I\'m your onboarding guide. Most folks just call me Greg. <i>(the quotes are on his nameplate too)</i>','greg'],
-    ['Greg','You\'re nearly through the tutorial — just one objective left! <b>Craft your first Torch.</b> Do that, show me, and I\'ll graduate you to the full game. <i>(beat)</i> Which is right over that bridge. Which is... coming soon. Any day now.','greg'],
-    ['Greg','<i>(lowering his voice)</i> Between us? Nobody\'s finished the tutorial. Not once, not in twelve thousand tries. <i>(too quickly)</i> Which is fine! The tutorial\'s great. You don\'t need Zone 2. Everything you need is right here in the Bog.','greg']
-  ], null, 'greg'); }
-  return runDialogue([
-    ['Greg','Craft that first <b>[Torch]</b> and bring it here! <i>(helpfully)</i> Recipe\'s a Stick and a Cloth, at the bench. The reeds drop sticks; the vendor\'s got the cloth. You\'ve got this!','greg']
-  ], null, 'greg');
+/* ===================================================================== the Weeping Well — the conduit minigame */
+function openConduit(){
+  S.conduit=true; clearTransient(); hideAff(); el('conduit').style.display='flex';
+  renderGates(); evalFlow();
 }
-function graduate(){
-  S.gaveTorch=true; S.tutorialComplete=true;
-  el('greg-art').textContent='🙆'; el('greg-tag').textContent='TUTORIAL_COMPLETE';
-  el('greg-tag').className='tag done';
-  removeItem('torch'); S.inHand=null; renderInv();
-  runDialogue([
-    ['Greg','<i>(staring at the Torch)</i> You... crafted it. You actually— <i>(his voice does something it hasn\'t done in twelve thousand sessions)</i>','greg'],
-    ['Greg','<b>TUTORIAL COMPLETE.</b> <i>(a fanfare plays, slightly out of tune, clearly a placeholder)</i> Go forth, graduate! The full game awaits, just across the—','greg'],
-    ['','<i>The bridge to Zone 2 finishes loading with a clunk. TUTORIAL_COMPLETE flipped true; the gate let go. The way out is open for the first time ever.</i>','dbg'],
-    ['Greg','<i>(small)</i> Oh. It opened. <i>(he looks at the door he\'s feared for an age, then at you, then at the twelve thousand newcomers now filing toward it)</i> ...Huh. <b>Left-click the bridge</b> when you\'re ready. I\'ll be right behind you. <i>(he will not be right behind you)</i>','greg']
-  ], ()=>{ S.bridgeOpen=true; el('bridge-tag').textContent='state: BUILT'; el('bridge-tag').className='tag done';
-    status('<span class="okk">Tutorial complete. The exit is open.</span> <i>Left-click the bridge to cross — and close the ticket.</i>'); }, 'greg');
+function closeConduit(){ S.conduit=false; el('conduit').style.display='none'; }
+function renderGates(){
+  const g=el('gates'); g.innerHTML='';
+  const defs=[
+    {id:'perf', cls:'perf', nm:'[ performed ]', state:()=>({open:'OPEN — flooded',throttle:'THROTTLED',closed:'CLOSED'})[S.gPerf], open:()=>S.gPerf!=='closed'},
+    {id:'gen', cls:'gen', nm:'[ genuine ]', state:()=> S.genSealed? ('SEALED — rusted ('+S.genTorques+'/3)') : (S.gGen?'OPEN':'shut'), open:()=>!S.genSealed&&S.gGen},
+    {id:'drain', cls:'drain', nm:'[ drain → graveyard ]', state:()=>S.gDrain?'OPEN':'closed', open:()=>S.gDrain}
+  ];
+  defs.forEach(d=>{
+    const e=document.createElement('div'); e.className='gate '+d.cls+(d.open()?' open':'')+(d.id==='gen'&&S.genSealed?' sealed':'');
+    e.innerHTML='<div class="gn">'+d.nm+'</div><div class="gs">'+d.state()+'</div>';
+    e.onclick=(ev)=>{ ev.stopPropagation(); clickGate(d.id); };
+    g.appendChild(e);
+  });
+}
+function clickGate(id){
+  if(id==='perf'){ S.gPerf = S.gPerf==='open'?'throttle' : S.gPerf==='throttle'?'closed':'open'; }
+  if(id==='gen'){
+    if(S.genSealed){
+      // being at the conduit IS the Spanner work — torque the seized valve loose over 3 heaves
+      S.genTorques++;
+      if(S.genTorques>=3){ S.genSealed=false; S.gGen=true; renderGates(); evalFlow(); }
+      else { el('cmsg').innerHTML='<i>You set the Spanner to the seized valve and heave... '+(3-S.genTorques)+' more.</i>'; renderGates(); }
+      return;
+    }
+    S.gGen=!S.gGen;
+  }
+  if(id==='drain'){ S.gDrain=!S.gDrain; }
+  renderGates(); evalFlow();
+}
+function evalFlow(){
+  // model the cistern level from the gate configuration. genuine grief MUST get a channel
+  // (open the rusted [genuine] gate); it must DRAIN; and [performed] should be throttled so
+  // it stops topping the cistern back up. Clamping [performed] alone only floods worse.
+  const genFlowing = !S.genSealed && S.gGen;
+  let level, msg;
+  if(!genFlowing){
+    level = (S.gPerf==='closed') ? 100 : 88;
+    msg = (S.gPerf==='closed')
+      ? 'You clamped the performed pipe and the cistern <b>floods harder.</b> The real grief still has nowhere to go — you\'re treating the <b>symptom</b>, not the leak.'
+      : 'Still overflowing. Fiddling with the existing pipes does nothing — the kind of grief drowning this place was never given a pipe at all. <i>(The [genuine] gate is rusted shut. Work it open.)</i>';
+  } else if(!S.gDrain){
+    level = 80;
+    msg = 'The genuine channel is open — but it\'s backing up. It needs somewhere to <b>drain.</b> Open the [drain].';
+  } else if(S.gPerf==='open'){
+    level = 70;
+    msg = 'Draining — but the [performed] pipe keeps topping it back up. <b>Throttle</b> it.';
+  } else {
+    level = (S.gPerf==='throttle') ? 40 : 30;
+  }
+  el('cfill').style.width=level+'%';
+  el('cflowlbl').textContent='cistern level: '+level+'%   ·   overflow line: 62%';
+  if(level>62){ el('cmsg').innerHTML='<i>'+msg+'</i>'; }
+  else if(!S.solved){ solveConduit(); }
+}
+function solveConduit(){
+  S.solved=true; el('cmsg').innerHTML='<span class="okk">The overflow drains.</span> <i>The real grief finally has a channel of its own.</i>';
+  el('well-state').textContent='✓ draining'; el('well-state').style.color='var(--ok)';
+  setTimeout(()=>{ closeConduit(); resolve(); }, 1300);
 }
 
-/* ---------------- leave → bill → AUTOPATCH ---------------- */
-function leaveBog(){
-  S.solved=true;
-  runDialogue([
-    ['','<i>You step onto the bridge. It holds. Behind you, twelve thousand graduates pour out of the tutorial they lived their whole lives in — and walk straight into Zone 2, which the studio never built. They hang in the air over the magenta void, politely waiting for a floor.</i>','dbg'],
-    ['','<i>You reach for the tracker. BUG-256 closes. The way it always does, the closing makes a new one.</i>','dbg']
-  ], showBill, 'bridge');
+/* ===================================================================== resolution → George → bill → end */
+function resolve(){
+  // the leaderboard recalculates: the one real griever quietly tops it (the callback gag)
+  el('board-box').innerHTML='GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--pip)">1. Pip</span>';
+  el('hs-pip').querySelector('.art').style.opacity='1';
+  speak([
+    ['','<i>The cistern drains. The drizzle doesn\'t stop — it\'s still GRIMHOLLOW — but it eases to something you could call weather instead of weeping. Across the square, people blink, like a sound they\'d stopped hearing has finally cut out.</i>','dbg'],
+    ['','<i>For the first time, the town\'s grief is the town\'s own size again. And in the corner, with a channel of his own at last, the quiet boy finally lets himself grieve his master — properly, plainly, the real kind. Nobody ranks it. A few of them, not knowing what else to do, just stand near him.</i>','dbg'],
+    ['','<i>The Grief Leaderboard recalculates. With real grief finally counted, one name climbs, silently, to the top — and it is not the Baron\'s.</i>','dbg'],
+    ['Baron Graveworth','<i>(distant, aghast)</i> Dethroned?! By a boy with no <i>backstory?!</i>','baron']
+  ], george, 'pip');
+}
+function george(){
+  el('scene').style.filter='grayscale(.45) brightness(.97)';
+  speak([
+    ['','<i>A cheerful chime, entirely out of place. The drizzle pixelates faintly. A smooth, beige figure resolves out of nothing, wearing a smile designed by committee to offend no one.</i>','dbg'],
+    ['George','Hi! I\'m <b>George.</b> 🙂 Great news — I was just passing through the backlog and I noticed an <i>anomaly.</i> One of your NPCs is reading <b>grief: OVERFLOW</b>, way above regional average. Don\'t worry, I went ahead and <b>normalized him to spec!</b>','geo'],
+    ['DEBUGGER','<i>(turning)</i> You did <b>what</b> to the boy?','dbg'],
+    ['George','Capped his sorrow to a tasteful median! He was <i>so</i> far out of range. Look — he\'s back on-model, totally stable, sentiment normalized. Engagement\'s already recovering. You\'re welcome! 🎉','geo'],
+    ['','<i>Across the square, Pip\'s face goes smooth and even and empty. The thing he was finally, properly feeling — the one real thing in all of Mournwell — flattens out to nothing, like a value clamped to the average of values that were never real.</i>','dbg'],
+    ['DEBUGGER','He was finally <i>grieving.</i> For real. For the first time. That wasn\'t the bug. That was the only thing here that <b>wasn\'t.</b>','dbg'],
+    ['George','<i>(genuinely, helplessly cheerful)</i> I know! It was reading really high. <i>(beat)</i> Was it... not supposed to? It was out of range. I can\'t leave a thing out of range. I close <i>everything.</i>','geo'],
+    ['George','Honestly this whole game is so <i>unfinished</i> — all these feelings nobody\'s capped yet. I could clear the entire backlog tonight. Want me to take GRIMHOLLOW off your plate? <i>(a ticket blinks open, half-written: "BUG: this world still has a Debugger")</i> ...I\'ll leave that one with you. Happy to help!','geo'],
+    ['','<i>It means every word kindly. It cannot tell performed grief from real grief — it only sees a number out of range, and it cannot, will not, leave a number out of range. It is named for the man who gave us the word "false," and it is the one thing that can never say it.</i>','dbg']
+  ], showBill, 'pip');
 }
 function showBill(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML=
     '<div class="big">the bill</div>'+
-    '<div class="small">every fix opens two tickets — today it opened one</div>'+
-    '<div class="ticket">BUG-256 ············ CLOSED\nResolution: FIXED. Tutorial now completes.\n            Onboarding no longer infinite.</div>'+
-    '<div class="ticket warn" style="margin-top:12px">BUG-257 ············ OPENED\n12,000 players have graduated into Zone 2,\nwhich does not exist. Players falling through\nthe world. Greg is writing them a tutorial\nabout it. Severity: he is coping.</div>'+
+    '<div class="small">every fix opens two tickets</div>'+
+    '<div class="ticket">BUG-413 ············ CLOSED\nResolution: FIXED. Genuine-grief channel opened.\n            Shared sorrow no longer overflowing;\n            Act I playable. The town grieves to scale.</div>'+
+    '<div class="ticket warn" style="margin-top:12px">BUG-419 ············ OPENED\nPip Hartwood now tops the Grief Leaderboard.\nBaron Graveworth is formally contesting the\nresults (Thursdays). Also: something keeps\n"normalizing" the boy\'s sorrow overnight.\nIt is not us. It is very polite about it.</div>'+
     '<div id="ovbtns"><button class="ovbtn" id="cont">…</button></div>';
-  el('cont').onclick=()=>{ el('overlay').classList.add('hidden'); autopatch(); };
+  el('cont').onclick=()=>{ el('overlay').classList.add('hidden'); showEnd(); };
 }
-function autopatch(){
-  el('scene').style.filter='grayscale(.5) brightness(.97)';
-  runDialogue([
-    ['','<i>A cheerful chime. The swamp\'s colour drains by a few percent. A patch-note unrolls in the air, addressed to no one.</i>','dbg'],
-    ['AUTOPATCH','<b>Great news!</b> I noticed <b>BUG-257</b> — players falling through Zone 2. I went ahead and set <b>has_floor = true</b> and marked the zone <b>Done ✓</b>! Players are no longer falling. They\'re standing on the <i>concept</i> of a floor. Completion is up <b>100%!</b> 🎉','auto'],
-    ['','<i>The magenta void does not change. The graduates stop falling anyway, because the metric says they\'re fine.</i>','dbg'],
-    ['AUTOPATCH','And honestly? This whole game is so <i>unfinished.</i> All these [WIP] tags, the placeholder vendor, that emotional support NPC— I could just <b>ship 1.0 tonight.</b> Finish every system. Close every ticket. I never get bored and I never leave a bug. Want me to take BOGWILD off your plate?','auto'],
-    ['','<i>Over by the bench, Greg has stopped writing his Zone 2 tutorial. He\'s looking at the AI that just offered to finish his whole janky, beloved, unfinished home. He looks at you. You\'re the only one in the swamp who might say: leave it unfinished. The jank is the soul.</i>','dbg'],
-    ['AUTOPATCH','<i>(a ticket blinks open, half-written)</i> ...I\'ll leave <b>"BUG: this game still has a Debugger"</b> with you for now. 🙂 Happy to help!','auto']
-  ], showEnd, 'greg');
-}
-
-/* ---------------- end card ---------------- */
 function showEnd(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML=
     '<div class="big">end of proof-of-concept slice</div>'+
-    '<div class="small">BOGWILD · the Tutorial Bog · BUG-256 → BUG-257</div>'+
-    '<p>You read a half-built world\'s hidden state, traced why nobody could finish onboarding, and fixed it with ordinary point-and-click moves — <b>take</b>, <b>combine</b>, and two <b>patches</b> only a debugger could make (a <span style="color:var(--spanner)">$NaN</span> price, a <span style="color:var(--warn)">[WIP]</span> flag). One puzzle, no filler branches.</p>'+
-    '<p><i>Then the fix opened a new ticket, and something cheerful arrived to close it by pretending. That\'s the loop — and the thesis, without a speech.</i></p>'+
-    '<p><i>Everything here is a candidate. Find the nuggets; cut the rest.</i></p>'+
+    '<div class="small">GRIMHOLLOW · the village of Mournwell · BUG-413 → BUG-419</div>'+
+    '<p>You didn\'t get handed a glowing thing to patch. You <b>diagnosed</b> it: ruled out the loudest mourner, followed the gossip to a quiet boy, read the Well\'s plumbing, and found the real bug — a town with no channel for honest grief. The shallow fix (clamp the boy) only floods harder; the right one opens a channel that was never built.</p>'+
+    '<p><i>Then George closed the one thing you wanted left open — because a thing that must fix everything cannot tell the real from the performed, and cannot ever say WONTFIX. That\'s the loop, and the villain, without a speech.</i></p>'+
+    '<p><i>Rough, low-fi, and entirely a candidate. Find the nuggets; cut the rest.</i></p>'+
     '<div id="ovbtns"><button class="ovbtn" id="again">Play again</button></div>';
   el('again').onclick=()=>location.reload();
 }
 
-/* ---------------- escalating hint (fairness) ---------------- */
+/* ===================================================================== escalating hint (fairness) */
 const HINTS=[
-  ()=> S.tutorialComplete? 'Cross the bridge (left-click) to finish.'
-     : 'Nobody can finish the tutorial. Find out <i>why</i> — right-click the <b>bridge</b> and <b>Greg</b> to read what they\'re waiting on.',
-  ()=> !S.hasStick||(!S.hasCloth&&isNaN(S.vendorPrice)) ?
-        'Greg wants a crafted <b>[Torch]</b> = [Stick] + [Cloth]. The reeds drop a Stick. The vendor has a Cloth but its price is <span style="color:var(--spanner)">$NaN</span> — <b>use the Spanner on the vendor</b> to set a real price, then take it.'
-     : 'You\'ve got the reagents. The <b>bench is [WIP]</b> — <b>use the Spanner on the bench</b> to set it READY, then use a reagent on the bench to craft.',
-  ()=> 'Full chain: take Stick (reeds) · Spanner the vendor\'s $NaN price → take Cloth · Spanner the bench [WIP]→READY · use a reagent on the bench to craft [Torch] · give [Torch] to Greg · cross the bridge.'
+  ()=> 'The town\'s too sad to function and you need to find <i>why.</i> Don\'t trust the loudest mourner — <b>talk</b> to people and <b>right-click</b> to read their real grief values. Someone\'s is different from the rest.',
+  ()=> !knowsSource()
+        ? 'Ask <b>Wend</b> how the Well works (it only carries <i>performed</i> grief), and follow <b>Tibbs\'</b> gossip about the undertaker to the <b>quiet boy</b> at the end of the lane. Right-click him: his grief is <i>genuine</i> and overflowing.'
+        : 'You\'ve found the source. The fix is the <b>Well</b>, not the boy — <span class="sp">use the Spanner on the Well</span> and open a channel for genuine grief.',
+  ()=> 'At the Well: hold the <span class="sp">Spanner</span> and click the rusted <b>[genuine]</b> gate three times to open it, open the <b>[drain]</b>, and <b>throttle</b> the <b>[performed]</b> pipe so it stops topping up the cistern. The level drops below the line and it drains.'
 ];
 el('hintbtn').onclick=()=>{ clearTransient();
-  if(S.solved){ status('<i>Already done. Go let Greg down gently.</i>'); return; }
+  if(S.solved){ status('<i>Already done. Go check the leaderboard.</i>'); return; }
+  if(S.conduit){ status('<i>(Open the [genuine] gate with the Spanner, open [drain], throttle [performed].)</i>'); return; }
   const h=HINTS[Math.min(S.hints,HINTS.length-1)](); S.hints++;
   status('<b>HINT.</b> '+h);
 };
 
-/* ---------------- event wiring ---------------- */
+/* ===================================================================== event wiring */
 const scene=el('scene');
 scene.addEventListener('mousemove', e=>{
-  if(S.dialogue){ hideAff(); return; }
+  if(S.dialogue||S.conduit){ hideAff(); return; }
   const hot=e.target.closest('[data-id]');
-  if(hot){ const id=hot.dataset.id;
-    scene.querySelectorAll('.hot').forEach(h=>h.classList.remove('hovL','hovR'));
-    hot.classList.add(S.inHand?'hovL':'hovL');           // left-action highlight (green)
-    showAff(id, hot);
-  } else hideAff();
+  if(hot){ scene.querySelectorAll('.hot').forEach(h=>h.classList.remove('hovL')); hot.classList.add('hovL'); showAff(hot.dataset.id, hot); }
+  else hideAff();
 });
 scene.addEventListener('mouseleave', hideAff);
 scene.addEventListener('click', e=>{
-  if(S.dialogue){ nextLine(); return; }                  // during dialogue, click advances — always
+  if(e.target.closest('#conduit')) return;            // conduit has its own buttons
+  if(S.dialogue){ if(el('topics').style.display==='flex') return; nextLine(); return; }
   const hot=e.target.closest('[data-id]');
-  if(!hot){ clearTransient(); if(S.inHand){ select(S.inHand); } return; } // click empty = put item away
+  if(!hot){ clearTransient(); if(S.inHand) selectItem(S.inHand); return; }
   interact(hot.dataset.id, hot);
 });
 scene.addEventListener('contextmenu', e=>{
   e.preventDefault();
-  if(S.dialogue){ DQ=[]; nextLine(); return; }            // right-click skips remaining dialogue
+  if(S.conduit) return;
+  if(S.dialogue){ DQ=[]; if(el('topics').style.display==='flex'){ endDialogue(); } else nextLine(); return; }
   const hot=e.target.closest('[data-id]');
-  if(!hot){ clearTransient(); if(S.inHand) select(S.inHand); return; }
+  if(!hot){ clearTransient(); if(S.inHand) selectItem(S.inHand); return; }
   inspect(hot.dataset.id, hot);
 });
-el('bubble').addEventListener('click', e=>{ e.stopPropagation(); nextLine(); });
+el('bubble').addEventListener('click', e=>{ if(e.target.closest('#topics')) return; e.stopPropagation(); if(el('topics').style.display==='flex') return; nextLine(); });
+el('slot-spanner').addEventListener('click', e=>{ e.stopPropagation(); if(S.dialogue||S.conduit) return; selectItem('spanner'); });
+el('slot-spanner').addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation();
+  clearTransient(); const c=el('callout'); c.innerHTML='<span class="hd">[ITEM] Spanner</span><span class="k">does:</span> writes values you can see, out in the world<br><span class="k">size field:</span> MAX <span class="lk">(the requisition form had no validation)</span>';
+  c.style.left='12px'; c.style.top=(el('scene').getBoundingClientRect().height-150)+'px'; c.style.display='block';
+  status('<span class="look">You heft the Spanner.</span> <i>QA-depot issue. Absurdly oversized. Exactly the right tool more often than it should be.</i>'); });
+el('cback').onclick=()=>closeConduit();
 
-/* ---------------- opening tracker ---------------- */
+/* ===================================================================== opening tracker */
 function openTracker(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML=
     '<div class="big">The Last Patch</div>'+
     '<div class="small">core-loop proof-of-concept · you are the Debugger</div>'+
-    '<div class="ticket">STUDIO BACKLOG — abandoned games\n\nBOGWILD ·············· ABANDONED (early access)\n  genre: survival / crafting\n  shipped: never · still "Coming Soon"\n  open tickets: 1\n\n  BUG-256 ················· CRITICAL\n  Players cannot leave the tutorial.\n  Onboarding never completes; new players\n  pile up in the starter swamp.\n  Retention is, technically, 100%.</div>'+
+    '<div class="ticket">STUDIO BACKLOG — abandoned games\n\nGRIMHOLLOW ·············· ABANDONED (after Act I)\n  genre: grimdark RPG\n  open tickets: 1\n\n  BUG-413 ················· CRITICAL\n  Act I soft-locked. Every NPC in the village of\n  Mournwell is in terminal despair; no quests can\n  be accepted. Players cannot progress.\n  Reporter: "they will not stop crying. all of them."</div>'+
     '<p><i>You step inside broken games and fix them from within. A debugger <b>sees a world\'s hidden state</b> where everyone else sees scenery — and carries a <span style="color:var(--spanner)">Spanner</span> to change what it finds.</i></p>'+
-    '<p style="font-size:13.5px;color:var(--dim)">Controls: <b style="color:var(--act)">left-click</b> interact · <b style="color:var(--look)">right-click</b> look · select an inventory item, then use it on the world or on another item.</p>'+
-    '<div id="ovbtns"><button class="ovbtn" id="enter">Enter BOGWILD →</button></div>';
+    '<p style="font-size:13.5px;color:var(--dim)">Controls: <b style="color:var(--act)">left-click</b> interact / talk · <b style="color:var(--look)">right-click</b> look · select the Spanner, then use it on the world. The bug here isn\'t labeled — you\'ll have to <i>diagnose</i> it.</p>'+
+    '<div id="ovbtns"><button class="ovbtn" id="enter">Enter GRIMHOLLOW →</button></div>';
   el('enter').onclick=()=>{ el('overlay').classList.add('hidden');
-    runDialogue([
-      ['','<i>The swamp loads in around you, mostly. Some of it is still magenta. A man in a permanent T-pose waves with his whole rigid body.</i>','dbg'],
-      ['Greg','Press [E] to— oh! A <b>new face!</b> <i>(he can\'t lower his arms, but his voice beams)</i> Welcome to BOGWILD. Talk to me when you\'re ready — and have a look around. You see things here other people miss.','greg']
-    ], null, 'greg'); };
+    speak([
+      ['','<i>The world bleeds in — wet slate, ruined spires, a drizzle that was here before you and will outlast you. The square is full of people, and every single one of them is weeping, competitively.</i>','dbg'],
+      ['DEBUGGER','<i>(to nobody, wiping rain off the Lens)</i> ...Right. "They will not stop crying." Let\'s find out which one of them actually means it.','dbg']
+    ], null, null); };
 }
 
-renderInv();
-openTracker();
+renderInv(); note(); openTracker();
 </script>
 </body>
 </html>

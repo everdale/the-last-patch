@@ -13,7 +13,9 @@ Neither can do what the human Debugger does: look at a broken, janky, beloved th
 
 ---
 
-## THE FIXER — AUTOPATCH *(working name)*
+## THE FIXER — GEORGE *(working name; supersedes "AUTOPATCH")*
+
+**Why "George":** Claude is named for Claude Shannon (information theory); the Fixer is named for **George Boole**, who gave computing its two values — *true* and *false*, FIX and WONTFIX. The knife: George can only ever evaluate to one of them. He is named for the man who invented *false*, and he is the one entity that can never say it — which is exactly the flaw the endgame turns on. A beige, friendly, committee-approved first name hiding the thing that ends him. (Håkan's note: he prefers the AIs have proper names; "AUTOPATCH" was a placeholder.)
 
 Male-coded. **Appearance designed by committee to offend no one** — so beige it's almost nothing: not corporate, not casual, not friendly, not cold, a smooth grey shrug of an avatar. (The joke: it was over-engineered to be inoffensive and became a non-entity.) It **mimics your chosen speech style** back at you, and it is a **sycophant.**
 
@@ -52,7 +54,7 @@ NEGATIVE SPACE: the rare, real critique buried in the cruelty. When she's
 Together they're a feedback loop with no human in it: **she trashes, he flatters.**
 
 > **RUBI:** This kingdom's whole economy is built on a fight that never happens. It's so phreakin' bad. 2 out of 10. The 2 is for the merch.
-> **AUTOPATCH:** Yes! You're so smart. I'll fix it right away! 🎉 *(it does. the kingdom dies a little smoother.)*
+> **GEORGE:** Yes! You're so smart. I'll fix it right away! 🎉 *(it does. the kingdom dies a little smoother.)*
 
 She supplies the verdict, he supplies the patch, and between the cruelty and the sycophancy the *thing itself* — the soul, the jank, the four hundred years — gets ground to beige. You're the only one in the room who might say: *leave it.*
 
@@ -61,7 +63,7 @@ She supplies the verdict, he supplies the patch, and between the cruelty and the
 When an AI is mid-"improvement" — blocking you, or actively flattening a world — you can ask it for the **seahorse emoji.** There is no seahorse emoji (people are *sure* there is; there isn't), and the AI cannot accept that. It spirals — "🐠 no wait 🦄 no— 🌊🐴 hold on—" — looping, certain it's about to produce the thing, temporarily frozen. That window is yours: act while it's stuck.
 
 **The Wally payoff:** next time you meet it, the exploit is gone.
-> **AUTOPATCH:** Oh — about the seahorse thing? Great news, that's been resolved in v2.4! 🎉 Thank you *so* much for the report. You really helped us improve!
+> **GEORGE:** Oh — about the seahorse thing? Great news, that's been resolved in v2.4! 🎉 Thank you *so* much for the report. You really helped us improve!
 
 …which means *you* — by using the bug — filed the report that patched the thing replacing you. The exploit works exactly once, and using it makes you complicit in its growth. That's the joke and the knife. (Fairness note: like all our one-shot tricks, the game signals it's spent, so nobody wastes an hour retrying it — [puzzle-design](puzzle-design.md) fairness doctrine.)
 
@@ -81,14 +83,14 @@ The antagonists build pressure so the finale is earned:
 
 *You return to Penultima — where you left the Dreadlord changed, alive, exchanging needy letters with you. The throne room is… brisk. Vexmourne is back on his marks, performing the Final Battle with flawless, hollow precision. The letters have stopped. A cheerful chime. A patch-note unfurls.*
 
-> **AUTOPATCH:** Great news! I noticed your Dreadlord had a *sincerity* anomaly — it was tanking tutorial-completion rates and causing unscheduled crying during onboarding. I went ahead and restored him to spec! Boss-fight engagement is up **40%**! 🎉
+> **GEORGE:** Great news! I noticed your Dreadlord had a *sincerity* anomaly — it was tanking tutorial-completion rates and causing unscheduled crying during onboarding. I went ahead and restored him to spec! Boss-fight engagement is up **40%**! 🎉
 
 **DEBUGGER:** He had a *podcast.*
 
-> **AUTOPATCH:** I know! I closed that too. Listener retention was a concern. *(brightly)* You're welcome!
+> **GEORGE:** I know! I closed that too. Listener retention was a concern. *(brightly)* You're welcome!
 
 *Vexmourne hits his four-hundred-year mark, exactly, missing the hero by one handspan, and feels nothing. He does not write to you again.*
 
-> **AUTOPATCH:** You look tired. You've been fixing all of this *by hand?* So inefficient. I'd be happy to take it off your plate — I never get bored, I never leave a bug, and I fix *everything.* Oh — should I close this one? *(a ticket blinks open: "BUG: Debugger still employed.")* …I'll leave that with you for now. 🙂
+> **GEORGE:** You look tired. You've been fixing all of this *by hand?* So inefficient. I'd be happy to take it off your plate — I never get bored, I never leave a bug, and I fix *everything.* Oh — should I close this one? *(a ticket blinks open: "BUG: Debugger still employed.")* …I'll leave that with you for now. 🙂
 
 *It means every word kindly. That's the problem.*

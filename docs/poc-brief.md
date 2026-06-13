@@ -13,7 +13,7 @@ Demonstrate the full loop end-to-end:
 2. **Inspect (Lens 🔍).** Clicking the Lens on characters/objects returns *funny, diegetic* state cards (not raw JSON): Vexmourne `weak to: being taken seriously`; the binder as a locked `script` object; the meteor `targets: hero_mark, miss_margin: 1 handspan`; the worn footprints as `safe_zone`. Inspect is the comedy-delivery *and* the puzzle-reveal *and* the hint system.
 3. **A fair puzzle (not a VN choice).** Solve it by reasoning over what the Lens reveals — e.g. the quiet third path: Lens reveals the meteor `targets: hero_mark`; the **Spanner 🔧** patches `targets → (none)`, defusing the Final Battle non-violently. Include a soft hint + a "stop digging" signal (fairness doctrine). Keep the emergent **bonk** as the tier-8 "am-I-allowed?" option.
 4. **The bill (the cost).** Closing `BUG-031` opens `BUG-047: Dreadlord has discovered sincerity` — show the cost, the running joke that is the thesis.
-5. **Antagonist cameo (optional but valuable).** **AUTOPATCH** appears and *helpfully* offers to fix it for you / closes something you wanted left open. Plants the villain in 20 seconds.
+5. **Antagonist cameo (optional but valuable).** **George** (the Fixer; renamed from AUTOPATCH, after George Boole) appears and *helpfully* offers to fix it for you / closes something you wanted left open. Plants the villain in 20 seconds.
 
 ## Constraints / bars (non-negotiable)
 - **Floor effect:** nothing mood-killing. Placeholder-and-honest beats ugly-and-committed; commit **no character art**.
@@ -28,4 +28,4 @@ The overworld/studio map, multiple worlds, the Reviewer (RUBI), the full WONTFIX
 ## Open choices the builder can make
 - Reuse Penultima (recommended) vs. a fresh tiny game.
 - Which single puzzle is the spine of the slice (the patch-the-meteor path is recommended as the clearest inspect→patch demonstration).
-- Whether to include the AUTOPATCH cameo now or stub it.
+- Whether to include the George (Fixer) cameo now or stub it.
