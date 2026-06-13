@@ -1,6 +1,8 @@
-# Puzzle Design — the spectrum, and how we keep it from going one-directional
+# Puzzle Design — a palette, not a checklist
 
-Håkan's fear, stated exactly: the monkey-wrench logic in Monkey Island is hilarious *because the rest of the game isn't that.* "If basically the whole game was just that kind of logic the game would become quite bad." A great adventure is a **balanced diet** of puzzle types — some obvious, some clever, some hidden in talk. This doc is the menu and the distribution rule that enforces variety.
+> Status: the *tiers* below are a useful vocabulary; the earlier "distribution rule" (quotas like "≥4 of 8 tiers, no 3 in a row") has been **retired** as too rigid — it was a formula, and formulas are the thing we're avoiding (Håkan, point 1). What survives is the *spirit*: vary the diet, don't go one-directional. Reach for tools that fit the world, not a quota to fill.
+
+Håkan's fear, stated exactly: the monkey-wrench logic in Monkey Island is hilarious *because the rest of the game isn't that.* "If basically the whole game was just that kind of logic the game would become quite bad." A great adventure is a **balanced diet** of puzzle types — some obvious, some clever, some hidden in talk. This doc is the *menu you order from*, world by world, choosing what suits that world's one joke.
 
 ## The eight tiers
 
@@ -19,17 +21,17 @@ Every puzzle in the game is tagged with one of these. (Tags are tracked per vign
 
 Tiers 5–8 are the ones unique to *this* game. Tiers 1–4 are the classic adventure backbone — we keep them because they're the floor, the low-hanging fruit, the breathing room that makes the clever ones land.
 
-## The distribution rule (anti-one-directionality)
+## Instincts, not rules (the retired quota)
 
-This is the law that answers point 8. For any **world** (genre-land):
+The earlier draft hardened these into a "distribution rule" with numeric quotas. That was the formula trap again — so treat them as **instincts a good designer already has**, applied with judgement per world, not gates a reviewer counts:
 
-1. **Hit at least 4 of the 8 tiers.** A world that is all tier-6 patch puzzles is as monotonous as one that is all tier-8 cleverness.
-2. **No three consecutive puzzles share a tier.** Pace = variety. After a head-scratcher (3/5/8), give them a tier-1 win.
-3. **Open and close on easy.** First puzzle of a world is tier 1–2 (welcome). The *gate* puzzle (story-clear) is never harder than tier 5; mastery puzzles can be 6–8.
-4. **Exactly one tier-8 "permission" gag per world, max.** Emergent cleverness is seasoning. Two per world and players start pixel-hunting for the trick instead of inhabiting the place; the monkey-wrench stops being special.
-5. **Every world teaches its one new verb on an easy puzzle before gating anything behind it.** (The proto: spanner is *used* trivially to unbolt before any real spanner puzzle.)
+- **Don't go one-directional.** A world that's all patch puzzles is as dull as one that's all emergent cleverness. Mix.
+- **Pace by contrast.** After a head-scratcher, a quick win breathes. Sameness in a row is the thing to feel for.
+- **Welcome gently; never wall the story.** Early puzzles should be inviting; the *story-clear* path should never be the hardest thing in the world (save brutal for optional mastery).
+- **Emergent gags are seasoning.** The "am-I-allowed?" trick (the bonk) is special *because it's rare*. Lean on it once and it lands; lean on it repeatedly and players pixel-hunt for tricks instead of inhabiting the place.
+- **Teach a verb easy before gating behind it.**
 
-A vignette's frontmatter carries its tier histogram; review rejects anything that violates 1–5.
+None of these is a quota, and a world is free to break one on purpose if the world's one joke demands it. The only hard test is the one at the bottom of this doc.
 
 ## Fairness doctrine (so "clever" never means "unfair")
 

@@ -1,68 +1,73 @@
-# Contributing to The Last Patch — the production system
+# Contributing — the toolbox (not a pipeline)
 
-This file answers Håkan's point 8 directly: *what does the repo need so that anyone — me, you, a future and different AI model — can keep adding high-quality, **diverse** content without the worlds blurring together, the voices collapsing, or the puzzles going one-directional?*
+The earlier version of this file was a nine-gate assembly line every world "must pass in order." That was a mistake, and it's exactly the trap Håkan named: **if five worlds all run the same checklist, the player feels the checklist.** "Find thing → use thing → solve puzzle → talk → minigame" repeated is death by structure.
 
-The answer is an **assembly line**: a fixed sequence of gates, each backed by a doctrine doc, that a new world must pass before it's canon. The gates are deliberately constraining. Constraints are what keep a single (especially AI) author from regressing to one house style. **Diversity is enforced, not hoped for.**
+So this is a **toolbox**. A world reaches for whatever tools build *that* world best, and deliberately differs in shape from its neighbours. There is no required sequence and no required set. The only things that don't vary are a handful of non-negotiables below.
 
-## The north-star docs (read before contributing)
+> Before adding anything, read [docs/status.md](docs/status.md). Most of the design is **candidate**, not canon. New ideas enter as candidates; don't write them as settled.
 
-| Doc | Owns the question |
-|---|---|
-| [docs/design.md](docs/design.md) | What is this game and what is it *for*? (completion & memory, not retention) |
-| [docs/the-mechanic.md](docs/the-mechanic.md) | The USP: inventory-as-debugger (Lens + Spanner). Why it's a game, not a VN. |
-| [docs/humor-doctrine.md](docs/humor-doctrine.md) | How comedy is built (bits not premises; enacted not read; the kill-rate). |
-| [docs/puzzle-design.md](docs/puzzle-design.md) | The 8 tiers + the distribution rule that prevents monotony. |
-| [docs/voice-bible.md](docs/voice-bible.md) | Voice Cards + the Strip-Names test that prevents same-voice collapse. |
-| [docs/world-traversal.md](docs/world-traversal.md) | Discovery-long / return-instant. The map contracts. |
-| [docs/tickets.md](docs/tickets.md) | The backlog. Every world is a ticket framed as a *bit*. |
+---
 
-## The assembly line — building one new world
+## The non-negotiables (these don't vary; everything else does)
 
-Copy [vignettes/_TEMPLATE.md](vignettes/_TEMPLATE.md) to `vignettes/<bug-id>-<name>/script.md` and pass these gates **in order**. Each gate has a hard rejection condition.
+1. **It's a game, not a slideshow.** Real interaction and reasoning, not a dialogue tree with a delay.
+2. **Comedy is character + situation.** Bits, not quirks; enacted, not read; cut anything that needs a second read. (See [docs/humor-doctrine.md](docs/humor-doctrine.md).)
+3. **Voices stay distinct; worlds feel distinct.** Run the Strip-Names test ([docs/voice-bible.md](docs/voice-bible.md)). No house-wit collapse.
+4. **Be fair.** No moon-logic. Every non-obvious solution has a discoverable hint and a "you're done here" signal.
+5. **Vary the shape.** A new world must differ *structurally* from the ones before it, not just cosmetically.
+6. **Draft long, cut half.** First-draft comedy regresses to wacky. Volume is raw material; the product is what survives the red pen.
 
-**Gate 0 — The Ticket (the bit).**
-State the world as one line in the bug tracker, and name the central character's **want → plan → backfire**. *Reject if you can only name a quirk.* ("Monster has stage fright" = quirk = reject. "Monster ordered a mirror-maze to feel surrounded, saw himself, became a narcissist" = bit = pass.)
+That's it. Six. Everything below is optional technique.
 
-**Gate 1 — The One Absurdity.**
-Write the single broken rule. Then write three ways the world takes it *dead seriously* (economy, religion, infrastructure, manners). *Reject if there's a second, unrelated absurdity* — one per land (humor-doctrine §4).
+## The toolbox (reach for what fits; no world uses all of it)
 
-**Gate 2 — Voice Cards.**
-Fill a six-axis Voice Card (voice-bible) for every speaking character, under the world's house-style. Then run the **Engine-Collision check**: no two characters share a comedic engine. *Reject on collision.*
+- **Puzzle techniques** — a *palette*, not a quota: low-hanging fruit, standalone reasoning, dialogue-hidden hints, inventory combination, inspect-gated, patch-a-value, power puzzles, emergent "am-I-allowed" gags. ([docs/puzzle-design.md](docs/puzzle-design.md) describes them — as options to draw from, **not** a list to complete.)
+- **The debugger kit** (candidate) — Lens to read hidden state, Spanner to write it. ([docs/the-mechanic.md](docs/the-mechanic.md).)
+- **Voice Cards** — fill before writing a character so they diverge by construction.
+- **The world's verb + a return shortcut** — *if* this world earns a power and *if* the spine wants one. Not mandatory. ([docs/world-traversal.md](docs/world-traversal.md).)
+- **The bill** — *if* we keep the "every fix has a cost" thesis, write the second ticket your fix opens.
 
-**Gate 3 — The Puzzle Histogram.**
-Design the puzzles and tag each by tier (puzzle-design). *Reject unless: ≥4 of 8 tiers present; no 3 consecutive same-tier; opens tier 1–2; story-gate ≤ tier 5; ≤1 tier-8 gag; the new verb is taught easy before it's gated.*
+### Vary the shape — concretely
+Worlds should not be the same machine in different paint. Some legitimate, *different* shapes:
+- a **dense puzzle box** (many small interlocking puzzles, little talk);
+- a **single big setpiece** (one elaborate problem, earned over the whole world);
+- a **dialogue-led** world (the "puzzle" is social — who to believe, what to repeat, à la a deduction game);
+- a **toy** world (you're mostly playing its genre's own game, lightly subverted);
+- a **trick** world (it breaks its own rules — the emergent tier carries it).
+Pick a shape that suits the world's one joke. Then make the *next* world a different shape.
 
-**Gate 4 — Fairness pass.**
-Every non-obvious puzzle has: a soft hint in the world, a "stop digging" signal, and a slot in the escalating hint button. *Reject any puzzle solvable only by moon-logic.*
+## Scope & gating — managing the move-space
 
-**Gate 5 — The Verb & the Warp.**
-Name the debugger verb this world teaches and the Warp Node / shortcut it drops on completion (world-traversal). *Reject if revisiting requires >2 screens of re-traversal.*
+Håkan, point 2: Monkey Island gates by episode, so at any moment your plausible moves are few and legible — you're never staring at "anchor on Mêlée or Blood Island?" An open world that's *always* fully open turns getting-stuck into brute-forcing a huge permutation space, which is misery.
 
-**Gate 6 — The Mercy & the Mastery (1+4 law).**
-A generous story-clear bar (~minutes, diegetic mercy on failure) **and** optional mastery tiers. *Reject if failure produces a wall instead of content.*
+Principles:
+- **Bound the active combination set.** At any point, the set of things that could plausibly combine should be small enough that reasoning beats brute force. Scope is a resource you spend deliberately, not an accident.
+- **Gate in controlled chunks.** Finishing a beat/world opens the next and quietly closes the last, the way a chapter does. The player's mental "what can I try right now?" stays short.
+- **Signpost the frontier.** The player should always be able to tell *which* problem is the current one. Stuck should mean "I don't see the solution," never "I don't know which of forty rooms the solution is even in."
 
-**Gate 7 — The Bill (the thesis).**
-Every fix opens a second ticket. Write the `BUG-xxx OPENED` that your fix causes, and how it pays out later (a letter, an NPC at Patched Anonymous, a return contract). *Reject a fix with no cost* — the whole game is about the cost.
+## Inventory & affordances — the Day-of-the-Tentacle problem
 
-**Gate 8 — The Red Pen.**
-Draft long, then cut. End the script with a self-flagged **kill list** (lines you suspect; lines you'd defend). Run the **Strip-Names test** on three lines. *Reject if any line falls flat on a second read or any voice is unassignable.*
+Håkan, point 3: shared inventory across a cast/across worlds is brilliant *and* frustrating — "do I have to test this random item against all three characters / all five worlds?" Mitigations (trade-offs, not defaults):
 
-## The kill-rate principle
+- **Per-world scoping, used sparingly.** A world may reject out-of-place items (the RPG world shrugs at modern/future gadgets). This shrinks the search — but it also taxes absurdist comedy (no sonic blowtorch on the medieval trapdoor). Spend it only where the frustration outweighs the gag.
+- **No false affordances.** Håkan hates scenery that *looks* interactive but is a distraction. Default: if a thing can be selected, it should matter (or be clearly, sparingly, flavour). Aim to balance worlds so we don't *need* filler interactables at all.
+- **Non-interactable → shortcut.** The preferred way to express a newly-opened path: a thing you genuinely *couldn't* select before (a door, a grate) becomes usable once unlocked from the other side. Clean, legible, no red herrings.
+- **The Lens is the anti-distraction tool, not a source of distraction.** Inspecting plain scenery returns a clearly *terminal* card ("just a wall") so the Lens tells you what's inert. Used this way, inspect *reduces* false affordances instead of making everything look live. (This is the answer to "doesn't inspect-everything make everything seem interactable?" — no, if inert things read as inert.)
 
-First-draft comedy — human or AI — regresses to "wacky." The funny lives in the third detail (gel pen, anxious stars). **Volume is raw material, never product.** Expect to cut half. A contribution that wasn't cut down probably wasn't punched up. The gate that matters most is the cheapest one: it's all paper until the script is funny.
+## A note on examples vs. specs
+
+Håkan, point 6: when he sketches a mechanic ("a Shakespeare-quoting NPC could hint a clock setting"), that's an *illustration of a principle*, not a build order. Extract the nugget (hints can hide in dialogue; bound the search), don't ship the literal example as canon. The Bard's Clock demo is tagged **example only** in [docs/status.md](docs/status.md) for exactly this reason.
+
+## If you are an AI contributor
+
+Two failure modes, both yours:
+- **Sameness.** One wit, one rhythm, one joke shape across every character and world. The Voice Cards, the Strip-Names test, and "vary the shape" exist to fight *you*. When unsure, make two things **more different than feels natural** — the pull is always toward collapse.
+- **Over-commitment.** You will tend to write candidates as if decided, and to over-build throwaway examples into enshrined deliverables. Don't. Mark new ideas candidate; check [docs/status.md](docs/status.md); and when in doubt, **cut** — the brief is to find the golden nuggets, not to produce volume.
 
 ## Repo layout
 
 ```
-docs/            the doctrine (north stars above)
-vignettes/       one folder per world; script.md is the source of truth
-  _TEMPLATE.md   copy this to start a world
-  bug-031-penultima/   first scripted world (the dialogue gate)
-demo/            playable prototypes (open the .html files directly)
-  index.html         BUG-031 narrative vignette (both paths + letters)
-  puzzle-proto.html  BUG-072 the Bard's Clock — the inventory-as-debugger mechanic
+docs/            doctrine + the status register (read status.md first)
+vignettes/       one folder per world; _TEMPLATE.md is a light worksheet, not a mandate
+demo/            low-fi logic/dialogue prototypes (placeholder visuals, inferred protagonist)
 ```
-
-## If you are an AI contributor (you probably are)
-
-Your specific failure mode is **sameness**: one wit, one rhythm, one joke shape across every character and world. The Voice Cards, the Engine-Collision check, the Strip-Names test, and the puzzle distribution rule exist precisely to fight *you*. Treat them as non-negotiable. When in doubt, make two characters **more different than feels natural** — the natural pull is toward collapse. And never explain a joke in the text; if it needs a second read, it's dead (humor-doctrine §7).

@@ -1,6 +1,8 @@
 # The Last Patch — Design Document
 
-> **One breath:** an authored comedy adventure where you play the Debugger — the one person who can step *inside* broken games and fix them from within. Every land is a game with one broken rule. Every fix opens two tickets. The last patch might be the decision to stop patching.
+> ⚠️ **Commitment level:** this document explores one coherent *candidate* shape for the game. The fixer-enters-broken-games fantasy and the comedy/KPI bars are fairly settled; the earned verbs, the specific worlds, and most of the structure here are **candidates we're auditioning**, not decisions. See [status.md](status.md) for the decided/candidate/example/open breakdown, and don't read anything below as locked.
+
+> **One breath:** an authored comedy adventure where you play a fixer — someone who can step *inside* broken games and repair them from within. Each land is a game with something wrong; fixing it is a built gameplay vignette. A recurring (candidate) idea: every fix opens two tickets, and the last patch might be the decision to stop patching.
 
 ## 1. Success metric (the thing everything else serves)
 

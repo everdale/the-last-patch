@@ -2,14 +2,18 @@
 
 > A comedy point-and-click adventure where you play the **Debugger** — the one person who can step *inside* broken games and fix them from within. Every land is a game with one broken rule. **Every fix opens two tickets.** The last patch might be the decision to stop patching.
 
-**The USP, in one line:** *the inventory is a debugger — look at anything to see how it really works, then break it on purpose.*
+**A candidate USP (auditioning):** *the inventory is a debugger — look at anything to see how it really works, then break it on purpose.*
+
+> ⚠️ **Most of this repo is exploration, not settled design.** Read [docs/status.md](docs/status.md) first — it marks what's *decided* vs. *candidate* vs. *throwaway example*. The earned verbs, the specific worlds (Penultima etc.), and most of the structure are candidates we're auditioning, not commitments.
 
 ---
 
 ## ▶ Play the prototypes (just open the files)
 
-- **[demo/puzzle-proto.html](demo/puzzle-proto.html)** — **BUG-072, the Bard's Clock.** The core mechanic: a real point-and-click puzzle (inventory, the Lens 🔍 to inspect hidden state, the Spanner 🔧 to patch it). A thing you see, a thing you learn from dialogue, a tool, and a number nobody hands you. *Start here.*
-- **[demo/index.html](demo/index.html)** — **BUG-031, the Kingdom of Penultima.** The narrative vignette: a JRPG throne room where the Final Battle has been in rehearsal for four hundred years. Two full solution paths (perform the show, or just… hit him with the wrench), with consequences that write you letters.
+These are **low-fidelity logic/dialogue prototypes** — placeholder visuals, an *inferred* (non-animated) protagonist, no committed art. They exist to test interaction, dialogue, and structure, not to show how the game will look.
+
+- **[demo/index.html](demo/index.html)** — **BUG-031, the Kingdom of Penultima.** A narrative vignette: a JRPG throne room where the Final Battle has been in rehearsal for four hundred years. Two solution paths (perform the show, or just… hit him with the wrench), with consequences that write you letters. *A tone test.*
+- **[demo/puzzle-proto.html](demo/puzzle-proto.html)** — **the Bard's Clock.** A **disposable spike**: built only to prove a world can be a real point-and-click puzzle and not a visual novel. The clock itself was a throwaway example — keep the *principles* (hints can hide in dialogue; bound the search), not the puzzle. Tagged *example only* in [status.md](docs/status.md).
 
 Both run as plain HTML — no build step. Open in any browser.
 
@@ -22,18 +26,19 @@ Start with the design doc, then the mechanic, then the doctrine docs.
 - **[docs/humor-doctrine.md](docs/humor-doctrine.md)** — bits not premises; jokes enacted not read; the kill-rate.
 - **[docs/puzzle-design.md](docs/puzzle-design.md)** — the 8 puzzle tiers and the distribution rule that keeps variety from collapsing into one trick.
 - **[docs/voice-bible.md](docs/voice-bible.md)** — Voice Cards + the Strip-Names test, so no two characters sound alike.
-- **[docs/world-traversal.md](docs/world-traversal.md)** — discovery is long, return is instant; the map contracts as you master it.
-- **[docs/tickets.md](docs/tickets.md)** — the world backlog, each framed as a bit.
+- **[docs/world-traversal.md](docs/world-traversal.md)** — discovery is long, return is instant; the map contracts as you master it. *(candidate)*
+- **[docs/tickets.md](docs/tickets.md)** — a candidate menu of worlds (examples + tone tests, **not** a committed roster).
+- **[docs/status.md](docs/status.md)** — ⭐ **the commitment register**: decided vs. candidate vs. example vs. open question. Read this to know what's real.
 
 ## 🛠 Build a world
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — the production assembly line: nine gates every new world passes, designed so quality and **diversity** are enforced, not hoped for.
-- **[vignettes/_TEMPLATE.md](vignettes/_TEMPLATE.md)** — copy this to start a world.
-- **[vignettes/bug-031-penultima/script.md](vignettes/bug-031-penultima/script.md)** — the first fully scripted world (both paths, the letters, the design appendix).
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — the **toolbox** (not a pipeline): six non-negotiables, then optional technique. Built so worlds vary in *shape*, not run a checklist.
+- **[vignettes/_TEMPLATE.md](vignettes/_TEMPLATE.md)** — a light worksheet to start a world (skip what doesn't fit).
+- **[vignettes/bug-031-penultima/script.md](vignettes/bug-031-penultima/script.md)** — the first scripted world, as a tone test (both paths, the letters, an appendix).
 
 ## Status
 
-Concept + vertical-slice design + two playable prototypes. Pre-production. The gate before any engine work: script one world end-to-end on paper and confirm it's funny the way Monkey Island is funny. Penultima is that script; the mechanic prototype proves it can be a *game* and not a slideshow.
+Early exploration. A candidate USP, a couple of tone tests, and a doctrine that's deliberately held loose. **Nothing is locked** — see [docs/status.md](docs/status.md). Open decisions that block downstream work: how heavy the spine is, how cross-world inventory scope is handled, and whether the theme stays gamedev. Next research step: a competitive teardown of how good (and instructively bad) point-and-click games balance puzzles, dialogue, and the move-space.
 
 ## The pitch, slightly longer
 

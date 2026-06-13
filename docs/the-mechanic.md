@@ -1,6 +1,8 @@
 # The Mechanic — what makes this a *game*, and the USP
 
-> Playable proof: [demo/puzzle-proto.html](../demo/puzzle-proto.html) (BUG-072, the Bard's Clock).
+> 🟡 **Candidate, not decided** ([status.md](status.md)). The inventory-as-debugger idea below is my strongest current *proposal* for the USP — promising and unproven. It could change form entirely, or lose to something better. What's genuinely settled is only the problem it solves (it must be a game, not a visual novel), not this particular solution.
+>
+> Disposable proof-of-concept: [demo/puzzle-proto.html](../demo/puzzle-proto.html) — a spike showing the idea *can* be a game. The clock puzzle is throwaway; the mechanic is the point.
 
 ## The problem this solves
 

@@ -1,8 +1,8 @@
-# The Ticket Queue
+# The Ticket Queue — a candidate menu, not a roster
 
-The bug tracker is the quest log, the worldbuilding device, and the vignette backlog. Each ticket is a seed written as a **bit** (want / plan / backfire), not a premise. Status reflects script readiness, not in-fiction state.
+> ⚠️ This is a **menu of candidate worlds and tone tests**, not a committed lineup ([status.md](status.md)). Expect most of these to be cut, re-themed, or merged. The value here is the *range* — proof that the "fixer enters broken games" frame generates varied, differently-shaped worlds — not a promise to build all of them. If we keep the bug-tracker-as-quest-log device, each entry is a seed written as a **bit** (want / plan / backfire), not a premise.
 
-Rule of thumb from the doctrine: if a ticket can't name what its central character *wants*, it isn't ready to build.
+Rule of thumb: if a ticket can't name what its central character *wants*, it isn't ready to build.
 
 ---
 
