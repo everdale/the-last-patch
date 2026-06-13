@@ -19,7 +19,7 @@ Read every other doc through this lens: if an idea is tagged **candidate** or **
 - **Inventory-as-debugger (Lens + Spanner).** My current best proposal for the USP. Strong, unproven. Could change form entirely.
 - **The earned-verbs / metroidvania spine** (Save Scum, Noclip, Pause, Cutscene Skip, Patch). Interesting *and* scary (Håkan, point 3). Held, not adopted. The spine's *weight* is an open question below.
 - **The specific worlds** — Penultima and the genre-land roster in [tickets.md](tickets.md) — are a candidate menu and a tone test, **not a committed lineup.** Expect cuts.
-- **"Every fix opens two tickets"** as the thesis; **The Update** as villain; **Patched Anonymous** as the thesis room. Thematically rich, still optional.
+- **"Every fix opens two tickets"** as the thesis; **The Update** as villain; **Patched Anonymous** as the thesis room. Thematically rich, still optional. Ending candidates explored in [ending-candidates.md](ending-candidates.md) (recommended spine: the player-choice fork, "hand back the verb") — all candidate, and flagged for *early* prototyping because meta-endings are the genre's most-stepped-on rake.
 - **The gamedev theme itself.** Survives a re-theme (the structure is "fixer enters broken worlds"). Held option.
 
 ## ⚪ Example only (illustration, never a spec)
