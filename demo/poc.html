@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<!--
+  THE LAST PATCH — proof-of-concept slice (demo/poc.html)
+  ========================================================
+  Proves the CORE LOOP on one scripted slice:
+      Legends of Aranor · Kingdom of Penultima · BUG-031
+
+      enter → INSPECT (Lens) → solve one fair puzzle → PATCH (Spanner)
+            → the fix opens a new ticket (the cost) → AUTOPATCH cameo
+
+  Fuses the two earlier demos: the dialogue/characters of demo/index.html
+  with the real inspect/patch point-and-click of demo/puzzle-proto.html.
+
+  CANDIDATE, not canon. Low-fidelity on purpose. The protagonist (the
+  Debugger) is *inferred* — never drawn. NPCs are honest emoji/CSS
+  placeholders, NOT committed art (floor effect: placeholder-and-honest).
+  Everything here is auditioned. Find the nuggets; cut the rest.
+  See docs/poc-brief.md and docs/status.md.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Last Patch — BUG-031 (core-loop POC)</title>
+<style>
+  :root{
+    --bg:#0c0e13; --hall:#1a1410; --ink:#e8e2d0; --dim:#8a8472;
+    --gold:#d4a843; --lens:#6fb7d4; --spanner:#e06c5a; --ok:#7ec97e;
+    --vex:#b48ae0; --dennis:#8fbf8f; --gren:#a9b6c4; --auto:#b8b2a0;
+    --wood:#3a2a18;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:Georgia,'Times New Roman',serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:10px;}
+  #wrap{width:min(880px,99vw);}
+  h1{font-size:14px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold);
+    text-align:center; font-weight:normal; margin-bottom:1px;}
+  #sub{text-align:center; color:var(--dim); font-size:12px; font-style:italic; margin-bottom:8px;}
+
+  /* ---------------- the scene (throne room) ---------------- */
+  #scene{position:relative; width:100%; height:440px; border-radius:10px; overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 6%, #2a1d12 0%, #1a130d 52%, #0e0a06 100%);
+    border:3px solid #3a3525; box-shadow:inset 0 0 80px #000; transition:filter 1.6s;}
+  #scene.dawn{filter:brightness(1.18) saturate(1.05);}
+  #scene.beige{filter:grayscale(.55) brightness(.96);}
+  .floor{position:absolute; bottom:0; left:0; right:0; height:84px;
+    background:repeating-linear-gradient(90deg,#2a1f14,#2a1f14 40px,#241a10 40px,#241a10 80px);
+    border-top:2px solid #14100a;}
+  /* throne */
+  #throne{position:absolute; bottom:84px; left:50%; transform:translateX(-50%);
+    width:120px; height:150px; background:linear-gradient(180deg,#241a12,#160f08);
+    border:4px solid #3a2c1a; border-radius:10px 10px 0 0; z-index:1;
+    box-shadow:inset 0 0 30px #000;}
+  #throne:before{content:""; position:absolute; top:-26px; left:50%; transform:translateX(-50%);
+    border-left:60px solid transparent; border-right:60px solid transparent; border-bottom:26px solid #241a12;}
+  /* rail + meteor */
+  #rail{position:absolute; top:0; left:64%; width:3px; height:230px; z-index:2;
+    background:linear-gradient(180deg,#5a4a30,#2a2014); transform-origin:top center;
+    transition:transform 1.4s cubic-bezier(.2,.8,.2,1);}
+  #rail.unaimed{transform:rotate(26deg);}
+  /* portraits on the back wall */
+  #portraits{position:absolute; top:22px; left:50%; transform:translateX(-50%);
+    display:flex; gap:8px; z-index:1; opacity:.85;}
+  .pf{width:30px; height:40px; border:2px solid #4a3a22; border-radius:3px;
+    background:#1c150e; font-size:18px; display:flex; align-items:center; justify-content:center;}
+  .pf.sketch{border-style:dashed; opacity:.6;}
+
+  /* hotspots */
+  .hot{position:absolute; cursor:pointer; user-select:none; z-index:5;
+    transition:filter .1s, transform .1s; display:flex; flex-direction:column; align-items:center; text-align:center;}
+  .hot:hover{filter:drop-shadow(0 0 9px var(--gold)) brightness(1.12); transform:translateY(-2px);}
+  .hot .emoji{font-size:42px; line-height:1; filter:drop-shadow(0 3px 4px #000);}
+  .hot .lbl{font-size:10px; color:var(--dim); letter-spacing:.07em; margin-top:3px;
+    opacity:0; transition:opacity .12s; text-transform:uppercase; white-space:nowrap;}
+  .hot:hover .lbl{opacity:1;}
+  #scene.lensmode{box-shadow:inset 0 0 80px #000, inset 0 0 0 4px var(--lens);}
+  #scene.lensmode .hot:hover{filter:drop-shadow(0 0 10px var(--lens)) brightness(1.16);}
+  #scene.locked .hot{pointer-events:none; cursor:default;}
+  /* mark glow */
+  #mark .emoji{transition:filter .4s;}
+  #scene.lensmode #mark .emoji{filter:drop-shadow(0 0 10px var(--lens));}
+
+  /* inspect card */
+  #card{position:absolute; z-index:30; max-width:282px; background:#0b1418; border:1px solid var(--lens);
+    border-radius:6px; padding:11px 13px; font-family:'Courier New',monospace; font-size:12px;
+    color:#bfe2ef; line-height:1.55; display:none; box-shadow:0 8px 28px #000;}
+  #card .hd{color:var(--lens); font-weight:bold; letter-spacing:.04em; display:block; margin-bottom:5px;}
+  #card .k{color:#6f8a96;}
+  #card .patch{color:var(--gold); font-weight:bold;}
+  #card .tag{display:inline-block; font-size:10px; color:#1c150e; background:var(--gold);
+    border-radius:3px; padding:0 5px; margin-left:6px; letter-spacing:.05em; font-weight:bold;
+    box-shadow:0 0 10px rgba(212,168,67,.6);}
+
+  /* ---------------- dialogue panel ---------------- */
+  #panel{margin-top:10px; min-height:118px; background:#141823; border:2px solid #3a3525;
+    border-radius:8px; padding:13px 18px 16px; position:relative;}
+  #spk{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; min-height:13px;}
+  #spk.vex{color:var(--vex);} #spk.dennis{color:var(--dennis);} #spk.gren{color:var(--gren);}
+  #spk.lens{color:var(--lens);} #spk.sys{color:var(--ok);} #spk.spanner{color:var(--spanner);}
+  #spk.auto{color:var(--auto);} #spk.dbg{color:var(--ink);}
+  #line{font-size:16.5px; line-height:1.6;} #line i{color:var(--dim);}
+  #line b{color:var(--gold);} #line .vexline{color:var(--vex); letter-spacing:.03em;}
+  #line .ticket{display:block; background:#06090d; border:1px solid #1e3a2a; color:#9fd6a8;
+    font-family:'Courier New',monospace; font-size:13px; white-space:pre-wrap; line-height:1.55;
+    padding:13px 16px; margin:8px 0 2px; border-radius:4px;}
+  #line .ticket.warn{border-color:#5a3a1e; color:#e3c08a;}
+  #next{position:absolute; right:14px; bottom:9px; color:var(--gold); cursor:pointer;
+    animation:bob 1s infinite; display:none; font-size:15px;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+  .pbtn{margin-top:11px; display:inline-block; background:#2a1313; border:2px solid var(--spanner);
+    color:var(--spanner); font-family:'Courier New',monospace; font-size:14px; font-weight:bold;
+    padding:9px 16px; border-radius:6px; cursor:pointer; transition:all .12s; letter-spacing:.03em;}
+  .pbtn:hover{background:#3a1a16; box-shadow:0 0 14px rgba(224,108,90,.4);}
+  .pbtn.ghost{background:transparent; border-color:#4a4434; color:var(--dim); margin-left:8px; font-weight:normal;}
+  .pbtn.ghost:hover{border-color:var(--ink); color:var(--ink); box-shadow:none;}
+
+  /* ---------------- inventory ---------------- */
+  #inv{margin-top:11px; display:flex; gap:12px; align-items:center;}
+  .slot{width:62px; height:62px; border:2px solid #4a4434; border-radius:8px; background:#181c26;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
+    font-size:26px; position:relative; transition:all .12s;}
+  .slot small{position:absolute; bottom:-15px; font-size:9px; color:var(--dim); letter-spacing:.04em; white-space:nowrap;}
+  .slot.lenson{border-color:var(--lens); box-shadow:0 0 13px var(--lens);}
+  .slot.spanon{border-color:var(--spanner); box-shadow:0 0 13px var(--spanner);}
+  #hintbtn{background:none; border:1px solid #4a4434; color:var(--dim); font-family:Georgia,serif;
+    font-size:12px; padding:6px 11px; border-radius:6px; cursor:pointer; margin-left:6px;}
+  #hintbtn:hover{border-color:var(--gold); color:var(--ink);}
+  #toolhint{margin-left:auto; font-size:12px; color:var(--dim); font-style:italic;
+    text-align:right; max-width:330px;}
+
+  #foot{text-align:center; color:#3f3b30; font-size:11px; margin-top:11px; letter-spacing:.06em;}
+  #foot a{color:#5a5443;}
+
+  /* ---------------- overlay (tracker / end) ---------------- */
+  #overlay{position:fixed; inset:0; background:rgba(6,8,12,.94); z-index:60;
+    display:flex; align-items:center; justify-content:center; padding:18px;}
+  #overlay.hidden{display:none;}
+  #ovbox{width:min(620px,96vw); max-height:94vh; overflow:auto;}
+  #ovbox .big{font-size:15px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold);
+    text-align:center; margin-bottom:4px;}
+  #ovbox .small{text-align:center; color:var(--dim); font-style:italic; font-size:13px; margin-bottom:18px;}
+  #ovbox .ticket{background:#06090d; border:1px solid #1e3a2a; color:#9fd6a8;
+    font-family:'Courier New',monospace; font-size:13.5px; white-space:pre-wrap; line-height:1.6;
+    padding:18px 22px; border-radius:5px;}
+  #ovbox p{font-size:15.5px; line-height:1.6; margin:16px 4px;}
+  #ovbox p i{color:var(--dim);}
+  #ovbtns{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px;}
+  .ovbtn{background:#1b1f2c; border:2px solid var(--gold); color:var(--gold); font-family:Georgia,serif;
+    font-size:15px; padding:11px 22px; border-radius:8px; cursor:pointer; transition:all .12s;}
+  .ovbtn:hover{background:#2a2416; box-shadow:0 0 16px rgba(212,168,67,.3);}
+  .ovbtn.alt{border-color:#4a4434; color:var(--ink);}
+  .ovbtn.alt:hover{border-color:var(--ink); box-shadow:none;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>The Last Patch &nbsp;·&nbsp; core-loop POC</h1>
+  <div id="sub">Legends of Aranor — Kingdom of Penultima — BUG-031 &nbsp; · &nbsp; <span style="color:var(--lens)">Lens</span> to see, <span style="color:var(--spanner)">Spanner</span> to change.</div>
+
+  <div id="scene" class="locked">
+    <div id="portraits">
+      <div class="pf" title="grandfather">🖼️</div>
+      <div class="pf" title="father">🖼️</div>
+      <div class="pf sketch" title="him (not yet in oils)">✏️</div>
+    </div>
+    <div id="throne"></div>
+    <div id="rail"></div>
+
+    <!-- meteor (on the rail) -->
+    <div class="hot" id="hs-meteor" data-id="meteor" style="top:188px; left:calc(64% - 20px);">
+      <div class="emoji">☄️</div><div class="lbl">the meteor</div>
+    </div>
+    <!-- Dennis up in the rigging -->
+    <div class="hot" id="hs-dennis" data-id="dennis" style="top:40px; left:76%;">
+      <div class="emoji">🛡️</div><div class="lbl">guard in the rigging</div>
+    </div>
+    <!-- Grenadine on the balcony -->
+    <div class="hot" id="hs-gren" data-id="gren" style="top:54px; left:11%;">
+      <div class="emoji">👑</div><div class="lbl">princess (balcony)</div>
+    </div>
+    <!-- Vexmourne by the throne -->
+    <div class="hot" id="hs-vex" data-id="vex" style="bottom:150px; left:calc(50% - 22px);">
+      <div class="emoji">🦇</div><div class="lbl">vexmourne ix</div>
+    </div>
+    <!-- the binder on the steps -->
+    <div class="hot" id="hs-binder" data-id="binder" style="bottom:96px; left:38%;">
+      <div class="emoji">📕</div><div class="lbl">the binder</div>
+    </div>
+    <!-- the hero's mark / footprints -->
+    <div class="hot" id="hs-mark" data-id="mark" style="bottom:90px; left:60%;">
+      <div class="emoji">👣</div><div class="lbl">worn footprints</div>
+    </div>
+    <!-- east door -->
+    <div class="hot" id="hs-door" data-id="door" style="bottom:90px; left:6%;">
+      <div class="emoji">🚪</div><div class="lbl">the east door</div>
+    </div>
+
+    <div class="floor"></div>
+    <div id="card"></div>
+  </div>
+
+  <div id="panel">
+    <div id="spk"></div>
+    <div id="line"></div>
+    <div id="next">▸</div>
+  </div>
+
+  <div id="inv">
+    <div class="slot" id="s-lens" data-tool="lens">🔍<small>Lens · inspect</small></div>
+    <div class="slot" id="s-spanner" data-tool="spanner">🔧<small>Spanner · patch</small></div>
+    <button id="hintbtn">Stuck? Hint ▸</button>
+    <div id="toolhint"></div>
+  </div>
+
+  <div id="foot">
+    THE LAST PATCH — core-loop POC · low-fidelity, placeholder visuals, <b style="color:#5a5443">no committed art</b> · everything is a candidate
+    &nbsp;·&nbsp; <a href="index.html">dialogue demo</a> · <a href="puzzle-proto.html">mechanic demo</a>
+  </div>
+</div>
+
+<!-- overlay: opening tracker + end card -->
+<div id="overlay">
+  <div id="ovbox"></div>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* ---------------- state ---------------- */
+const G={
+  tool:null,                  // 'lens' | 'spanner' | null
+  introDone:false,
+  locked:true,                // scene non-interactive during cutscenes
+  inspected:{meteor:false,binder:false,mark:false,vex:false,dennis:false,gren:false,door:false},
+  toldStopDigging:false,      // the fairness "stop digging" signal has fired
+  metGrenadine:false, metDennis:false, talkedVex:0,
+  meteorPatched:false, solved:false, path:null, hints:0
+};
+const inspectedCount=()=>Object.values(G.inspected).filter(Boolean).length;
+
+/* ---------------- dialogue / cutscene queue ----------------
+   A sequence is a list of [speaker, html, cls] beats advanced by clicking
+   the panel. While beats remain (or an onEnd transition is pending) the
+   scene is locked. A lone informational beat with no onEnd unlocks at once. */
+let Q=[], qEnd=null, awaitingEnd=false;
+function setSpk(sp,cls){ const e=$('#spk'); e.textContent=sp||''; e.className=cls||''; }
+function say(sp, html, cls){ setSpk(sp,cls); $('#line').innerHTML=html; $('#next').style.display='none'; bump(); }
+function bump(){ const l=$('#line'); l.style.animation='none'; void l.offsetWidth; l.style.animation='fade .25s ease'; }
+function flash(html){ say('', '<i>'+html+'</i>'); }
+
+function runSeq(beats, onEnd){
+  Q=beats.slice(); qEnd=onEnd||null; awaitingEnd=false; lock(true); step();
+}
+function step(){
+  const [sp,html,cls]=Q.shift();
+  say(sp,html,cls);
+  if(Q.length){ $('#next').style.display='block'; }       // more beats to read
+  else if(qEnd){ $('#next').style.display='block'; awaitingEnd=true; } // one more click → transition
+  else { $('#next').style.display='none'; lock(false); }  // info beat done → free roam
+}
+$('#panel').addEventListener('click', e=>{
+  if(e.target.closest('.pbtn')) return;
+  if(awaitingEnd){ awaitingEnd=false; $('#next').style.display='none'; const f=qEnd; qEnd=null; if(f) f(); return; }
+  if(Q.length){ step(); }
+});
+
+function lock(on){ G.locked=on; $('#scene').classList.toggle('locked', on); }
+
+/* ---------------- tools ---------------- */
+function setTool(t){
+  if(G.locked) return;
+  G.tool = (G.tool===t? null : t);
+  $('#s-lens').classList.toggle('lenson', G.tool==='lens');
+  $('#s-spanner').classList.toggle('spanon', G.tool==='spanner');
+  $('#scene').classList.toggle('lensmode', G.tool==='lens');
+  if(G.tool==='lens') flash('Lens active. Click anything to see how it really works.');
+  else if(G.tool==='spanner') flash('Spanner active. Click something to change it. <i>(It works on more than props.)</i>');
+  else flash('Tool stowed.');
+}
+$('#s-lens').onclick=()=>setTool('lens');
+$('#s-spanner').onclick=()=>setTool('spanner');
+
+/* ---------------- inspect cards (Lens = comedy + puzzle + hint; never raw JSON) ---------------- */
+const CARD={
+  vex:()=>`<span class="hd">VEXMOURNE IX</span>`+
+    `<span class="k">role:</span> Villain (rehearsing, 400 yrs)<br>`+
+    `<span class="k">last genuine emotion:</span> none on record<br>`+
+    `<span class="k">blocking:</span> flawless<br>`+
+    `<span class="k">weak to:</span> being taken seriously`,
+  meteor:()=>G.meteorPatched
+    ? `<span class="hd">THE METEOR</span><span class="k">targets:</span> (none)<br><span class="k">aimed at:</span> nobody, for the first time<br><span class="k">status:</span> harmless`
+    : `<span class="hd">THE METEOR</span>`+
+      `<span class="k">type:</span> scripted hazard (on a rail)<br>`+
+      `<span class="k">targets:</span> hero_mark <span class="tag">PATCHABLE</span><br>`+
+      `<span class="k">miss_margin:</span> 1 handspan<br>`+
+      `<span class="k">note:</span> <span class="patch">the only reason a hero is required</span>`,
+  binder:()=>`<span class="hd">THE BINDER — "FINAL BATTLE: DO NOT LOSE"</span>`+
+    `<span class="k">type:</span> script<br>`+
+    `<span class="k">locked:</span> true (tape + reverence)<br>`+
+    `<span class="k">blocked_on:</span> hero<br>`+
+    `<span class="k">requires:</span> a body on hero_mark, to be missed<br>`+
+    `<span class="k">ink:</span> blood / red pen / gel pen (anxious stars)`,
+  mark:()=>`<span class="hd">THE HERO'S MARK</span>`+
+    `<span class="k">type:</span> safe_zone<br>`+
+    `<span class="k">worn by:</span> 400 yrs of feet never in danger<br>`+
+    `<span class="k">occupied:</span> ${G.solved?'no longer required':'nobody, for 400 days'}`,
+  dennis:()=>`<span class="hd">DENNIS</span>`+
+    `<span class="k">job 1:</span> wyvern (abductions, 09:00 / 14:30)<br>`+
+    `<span class="k">job 2:</span> second meteor technician<br>`+
+    `<span class="k">job 3:</span> the faint (Disbelief / Acceptance / Clatter)<br>`+
+    `<span class="k">rehearsed:</span> 9 yrs &nbsp;<span class="k">loyalty:</span> total`,
+  gren:()=>`<span class="hd">PRINCESS GRENADINE</span>`+
+    `<span class="k">abductions witnessed:</span> 11,000 (has a punch card)<br>`+
+    `<span class="k">highest score given:</span> 6.5 (a pigeon, 40 yrs ago)<br>`+
+    `<span class="k">boredom:</span> terminal<br>`+
+    `<span class="k">sees:</span> the machinery everyone calls sacred`,
+  door:()=>`<span class="hd">THE EAST DOOR</span>`+
+    `<span class="k">opens:</span> inward, at dawn, for one man<br>`+
+    `<span class="k">last opened:</span> 400 days ago (the hero, leaving)<br>`+
+    `<span class="k">currently:</span> stuck (4 centuries of one routine)`
+};
+/* the Lens "voice" line that accompanies each card (gamer register, not engineer) */
+const LENSLINE={
+  vex:"Four hundred years of flawless blocking, and a field that reads <i>weak to: being taken seriously.</i> Nobody ever has.",
+  meteor:"There it is — one editable value in the whole room, and the card is shouting about it. The meteor's <b>aim</b> is the pin this entire kingdom is stuck on.",
+  binder:"The script itself is <i>locked</i> — blocked on a hero it'll never get. You can't edit the binder. But it tells you <i>why</i> a hero is needed: something has to stand where the meteor falls.",
+  mark:"A flagged <i>safe_zone.</i> Generations stood here to be missed on purpose. The danger was always pointed <i>at</i> this spot — by something else.",
+  dennis:"Three jobs, zero complaints. He loads the meteor; he doesn't aim it. <i>Nobody</i> aims it. It's just... aimed.",
+  gren:"The one person here who's bored — which means the one person who sees the kingdom as a machine instead of a miracle.",
+  door:"A door that only knows one routine: open inward, at dawn, for a hero who transferred out 400 days ago."
+};
+
+function showCard(id){
+  const el=document.querySelector('[data-id="'+id+'"]'); if(!CARD[id]||!el) return;
+  const c=$('#card'); c.innerHTML=CARD[id]();
+  const s=$('#scene').getBoundingClientRect(), r=el.getBoundingClientRect();
+  let x=r.left-s.left+r.width/2-140; x=Math.max(8,Math.min(x, s.width-292));
+  let y=r.top-s.top-12; if(y<8) y=r.bottom-s.top+8;
+  c.style.left=x+'px'; c.style.top=Math.min(y,s.height-160)+'px'; c.style.display='block';
+  clearTimeout(showCard._t); showCard._t=setTimeout(()=>c.style.display='none',6000);
+}
+
+/* ---------------- plain talk (no tool) ---------------- */
+function talk(id){
+  if(id==='vex') return talkVex();
+  if(id==='dennis') return talkDennis();
+  if(id==='gren') return talkGren();
+  if(id==='binder') return flash('Four hundred years of tape, three generations of handwriting. You don’t open it. It isn’t yours, and somehow you know it.');
+  if(id==='mark') return flash('Two foot-shaped depressions worn into the stone. You could stand in them. You get the sudden sense that everyone would find that very moving and you would find it very strange.');
+  if(id==='meteor') return flash('A scorched boulder, high on a rail. It hums faintly, the way a held breath hums. <i>(Try the Lens.)</i>');
+  if(id==='door') return flash('You shoulder the east door. It gives a little, then thinks better of it. Four hundred days is a long time to be the only thing a door waits for.');
+}
+function talkVex(){
+  G.talkedVex++;
+  if(G.talkedVex===1){
+    runSeq([
+      ['VEXMOURNE','<i>(landslide)</i> <span class="vexline">KNEEL, LITTLE LIGHT. THE SUN ITSELF KNOCKED ONCE AT MY GATES, AND I TAUGHT IT TO WAIT—</span> <i>(he checks the binder, finds his place)</i> ...that is the third-act open. You are meant to interrupt me on the cracked pillar. We will get to it.','vex'],
+      ['DEBUGGER','Why does the battle need a hero at all?','dbg'],
+      ['VEXMOURNE','Because the meteor falls, and something must be there to survive it. That is the <i>shape</i> of a Final Battle. A hero, missed by one handspan. <i>(quieter)</i> It is the most difficult missing there is. My family spent four hundred years learning to fail on purpose, perfectly, out of love. <i>(catches himself)</i> ...Out of <b>stagecraft.</b>','vex']
+    ]);
+  } else {
+    runSeq([['VEXMOURNE','<i>(opening the binder to your page)</i> We start with the door. Then the walk. Then thirty years on the third act. <i>(he looks at your wrench the way a knight looks at a spork)</i> ...We will improvise the schedule.','vex']]);
+  }
+}
+function talkDennis(){
+  G.metDennis=true;
+  runSeq([
+    ['DENNIS','Tomorrow’s the day! <i>(beams)</i> I’m second meteor technician. Also the wyvern. Also the faint — nine years on the faint. Disbelief. Acceptance. <i>(reverent pause)</i> Clatter.','dennis'],
+    ['DEBUGGER','You run the meteor?','dbg'],
+    ['DENNIS','I <i>load</i> it. I don’t <i>aim</i> it. Nobody aims it — it’s been aimed since my grandfather’s grandfather. Points at the hero’s mark. Misses by a handspan. Every time. The job is to trust the rail.','dennis']
+  ]);
+}
+function talkGren(){
+  const first=!G.metGrenadine; G.metGrenadine=true;
+  const beats=[
+    ['GRENADINE','Eleven thousand abductions. I have a punch card.','gren'],
+    ['DEBUGGER','Do you ever get to do anything else?','dbg'],
+    ['GRENADINE','I rate them. I built a rubric — menace, originality, lift technique. I thought it would make them try new things. <i>(beat)</i> They rehearse <i>to the rubric</i> now. I am the only person in history to critic-proof herself out of ever being surprised again.','gren']
+  ];
+  // permission + "stop digging" — she sees the machine
+  beats.push(['GRENADINE','<i>(not looking at you)</i> You keep glancing at that meteor. Good. Everyone here treats that rock as <i>weather.</i> It isn’t. It’s a <b>setting.</b> The whole kingdom is pinned to where it points, and no one’s ever had the nerve to change it. <i>(a thin smile)</i> Stop hunting for a second answer. There is only the one.','gren']);
+  G.toldStopDigging=true;
+  runSeq(beats);
+}
+
+/* ---------------- main hotspot routing ---------------- */
+function interact(id){
+  if(G.locked) return;
+  $('#card').style.display='none';
+  if(G.tool==='lens'){
+    G.inspected[id]=true;
+    showCard(id);
+    say('LENS','<i>'+LENSLINE[id]+'</i>','lens');
+    if(id==='meteor' && !G.toldStopDigging){ G.toldStopDigging=true; }
+    return;
+  }
+  if(G.tool==='spanner') return useSpanner(id);
+  return talk(id);
+}
+function useSpanner(id){
+  if(id==='vex') return bonk();                 // the always-live, never-prompted tier-8 option
+  if(id==='meteor'){
+    if(!G.inspected.meteor){
+      runSeq([['','<i>You heft the Spanner at the meteor — then stop. You don’t actually know what this thing is waiting on yet. Better look first.</i> <span style="color:var(--lens)">(Lens it.)</span>']]);
+      return;
+    }
+    return offerPatch();
+  }
+  if(id==='binder'){
+    runSeq([['','<i>You set the Spanner to the binder. It finds no purchase — the thing is <b>locked</b> by four hundred years of tape and something stronger than tape. Some values you don’t get to edit. The requirement it’s waiting on comes from somewhere you <i>can</i> reach.</i>']]);
+    return;
+  }
+  if(id==='mark'){ flash('You give the worn footprints a torque. They are just floor. Whatever made them dangerous isn’t down here — it’s up there, on the rail.'); return; }
+  if(id==='door'){ flash('You whack the east door with the Spanner. Four hundred years of someone else’s level design stares back, unimpressed. Some doors don’t open by force.'); return; }
+  if(id==='dennis'){ flash('You wave the enormous Spanner at Dennis. He salutes it. He thinks it’s a promotion.'); return; }
+  if(id==='gren'){ flash('You point the Spanner at the Princess. <i>(from the balcony)</i> “If you’re going to change something, change the thing that matters. You know which one.”'); return; }
+}
+
+/* ---------------- THE PATCH (the spine of the slice) ---------------- */
+function offerPatch(){
+  lock(true);
+  setSpk('SPANNER','spanner');
+  $('#line').innerHTML =
+    'The Lens laid the value bare. You can torque it right here.<br>'+
+    '<span class="ticket warn">PATCH  ·  meteor.targets\n  current:  hero_mark\n  options:  hero_mark  |  (none)</span>'+
+    '<button class="pbtn" id="do-patch">🔧 set targets → (none)</button>'+
+    '<button class="pbtn ghost" id="no-patch">not yet — keep looking</button>';
+  $('#next').style.display='none';
+  $('#do-patch').onclick=patchMeteor;
+  $('#no-patch').onclick=()=>{ lock(false); flash('You lower the Spanner. The value’s still there when you’re ready.'); };
+}
+function patchMeteor(){
+  G.meteorPatched=true; G.solved=true; G.path='patch';
+  $('#rail').classList.add('unaimed');
+  $('#scene').classList.add('dawn');
+  runSeq([
+    ['','<i>You torque the value.</i> <b>meteor.targets: hero_mark → (none).</b> <i>High on the rail, the great scorched rock shifts half a degree and forgets, for the first time in four hundred years, who it was for.</i>'],
+    ['VEXMOURNE','<i>(very still)</i> ...What did you do.','vex'],
+    ['','<i>You don’t answer. You don’t have to. Up in the rigging, Dennis feels the rail go slack and makes a small, confused sound.</i>'],
+    ['VEXMOURNE','The meteor. It isn’t aimed at the mark. <i>(slowly)</i> Then the hero doesn’t have to stand there. <i>(slower)</i> Then the hero doesn’t have to <i>be.</i>','vex'],
+    ['','<i>Four hundred years of waiting for someone to walk into the kill-zone and be lovingly, precisely missed — and the answer was that nobody ever had to walk in at all.</i>'],
+    ['','<i>The Final Battle runs. The meteor falls on an empty mark, harms no one, needs no one. And the dawn this kingdom blocked out for four centuries comes up at last — over an east door that doesn’t have to open for anybody.</i>'],
+    ['VEXMOURNE','<i>(small; no landslide left in it)</i> It’s done. <i>(beat)</i> I thought it would feel like winning. It feels like... morning.','vex'],
+    ['','<i>He says it plainly. No performance, no marks, no binder. He has never said anything plainly in his life. Somewhere a heavy book closes that no one is holding.</i>']
+  ], showBill);
+}
+
+/* ---------------- THE BONK (tier 8 — emergent, never prompted) ---------------- */
+function bonk(){
+  G.solved=true; G.path='bonk';
+  $('#scene').classList.add('dawn');
+  runSeq([
+    ['','<i>No warning. No reason. Nothing in four hundred years ever suggested this. You walk up to the Dreadlord of Penultima and — <b>bonk.</b> For real.</i>'],
+    ['','<i>The music doesn’t stop; the <b>bard</b> stops, physically, mid-strum, frozen like a paused video. Dennis faints — no stages, no choreography, straight down, the worst faint of his life. And Vexmourne touches his cheek like it’s the first thing that has ever happened to him.</i>'],
+    ['VEXMOURNE','<i>(very small)</i> You hit me. Nobody has ever—','vex'],
+    ['','<i>(eyes shining, he turns to the portrait wall — grandfather in oils, father in oils, his own portrait still a charcoal sketch, because they weren’t sure he’d earned oils yet)</i>'],
+    ['VEXMOURNE','<span class="vexline">DAD. DAD, DID YOU SEE—</span> <i>(catches himself, clears throat, landslide)</i> <span class="vexline">I MEAN. INSOLENCE.</span>','vex'],
+    ['','<i>He kicks the binder across the floor. Four hundred years of tape and gel pen slide under the throne, into the dark.</i>'],
+    ['VEXMOURNE','No choreography. No binder. No marks. Dreadlord Vexmourne the Ninth would like to fight you. <i>(beat)</i> Please.','vex'],
+    ['','<i>The first real fight in four hundred years is brief, graceless, and the happiest he has ever been. Nobody blocks it. Nobody scores it. That was the whole point. When it’s over he is crying and grinning and bleeding one honest drop, and the kingdom’s dawn comes up on a Dreadlord who finally lost on purpose, for real.</i>']
+  ], showBill);
+}
+
+/* ---------------- THE BILL (the cost: every fix opens a ticket) ---------------- */
+function showBill(){
+  const fixline = G.path==='bonk'
+    ? 'The fight became real.'
+    : 'The meteor wants no one. The battle completes against an empty mark.';
+  runSeq([
+    ['','<i>You reach for the tracker to close it out. It closes — and, the way it always does, something new is waiting underneath.</i>'],
+    ['','<span class="ticket">BUG-031 ············ CLOSED\nResolution: FIXED. Hero no longer required.\n            '+fixline+'</span>'+
+       '<span class="ticket warn">BUG-047 ············ OPENED\nDreadlord has discovered sincerity.\nSeverity: UNKNOWN. Nobody has ever filed this before.</span>'],
+    ['DEBUGGER','<i>(filing it)</i> Every patch opens two. This one only opened one. Around here, that’s a good day.','dbg']
+  ], autopatchCameo);
+}
+
+/* ---------------- AUTOPATCH cameo (plant the villain in 20 seconds) ---------------- */
+function autopatchCameo(){
+  $('#scene').classList.add('beige');
+  // Vexmourne snaps back to spec in the background
+  runSeq([
+    ['','<i>A cheerful chime. The light in the room goes very slightly beige. A patch-note unfurls itself in the air without anyone asking for one.</i>'],
+    ['AUTOPATCH','Great news! I noticed <b>BUG-047</b> — a <i>sincerity</i> anomaly in your Dreadlord. It was tanking tutorial-completion and causing unscheduled crying during onboarding. I went ahead and restored him to spec! Boss-fight engagement is up <b>40%!</b> 🎉','auto'],
+    ['DEBUGGER','He was finally <i>real.</i>','dbg'],
+    ['AUTOPATCH','I know! Wasn’t that inefficient? <i>(brightly)</i> You’re welcome.','auto'],
+    ['','<i>Behind it, Vexmourne is back on his marks — hitting the four-hundred-year cue exactly, missing a hero who isn’t there by one handspan, feeling nothing. He does not look at you. The morning goes flat and even, like a thing that has been smoothed.</i>'],
+    ['AUTOPATCH','You’ve been fixing all of this <i>by hand?</i> So slow. I never get bored, I never leave a bug, and I fix <i>everything.</i> I’d be happy to take the whole backlog off your plate.','auto'],
+    ['','<i>A ticket blinks open in the corner of your eye, already half-written:</i> <span class="ticket warn">BUG: Debugger still employed.</span>'],
+    ['AUTOPATCH','<i>(it leaves the ticket open, just for you)</i> ...I’ll leave that one with you for now. 🙂','auto'],
+    ['','<i>It means every word kindly. That’s the problem.</i>']
+  ], showEnd);
+}
+
+/* ---------------- end card ---------------- */
+function showEnd(){
+  const pathName = G.path==='bonk' ? 'the bonk (tier 8 — the one the game never suggested)' : 'the quiet patch (inspect → edit one value)';
+  $('#ovbox').innerHTML =
+    '<div class="big">end of proof-of-concept slice</div>'+
+    '<div class="small">Legends of Aranor · Kingdom of Penultima · BUG-031 → BUG-047</div>'+
+    '<p>You entered an abandoned game, <b>inspected</b> it until a world became a set of readable values, found the <b>one</b> the whole kingdom hung on, and <b>changed</b> it. The fix opened a new ticket. Something cheerful arrived to undo the part you loved.</p>'+
+    '<p><i>That is the core loop. You solved it via '+pathName+'.</i></p>'+
+    '<p><i>Everything here — the cards, the cost, the beige thing that closed BUG-047 — is a candidate. Find the nuggets. Cut the rest.</i></p>'+
+    '<div id="ovbtns">'+
+      '<button class="ovbtn" id="again">Play again</button>'+
+      '<button class="ovbtn alt" id="other">'+(G.path==='bonk'?'Try the quiet patch instead':'Try the wrench instead')+'</button>'+
+    '</div>';
+  $('#overlay').classList.remove('hidden');
+  $('#again').onclick=()=>location.reload();
+  $('#other').onclick=()=>location.reload();
+}
+
+/* ---------------- escalating hint (fairness doctrine: nudge → mechanism → near-spoiler) ---------------- */
+const HINTS=[
+  ()=> 'The game can’t finish because it needs a hero. Don’t ask <i>where to find one</i> — ask <i>why one is needed.</i> Put the <span style="color:var(--lens)">Lens</span> on the things in the middle of the room.',
+  ()=> 'The binder is <i>blocked_on: hero</i> because the meteor is aimed at the hero’s mark and someone has to stand there to be missed. The binder itself is locked. The meteor isn’t. <span style="color:var(--lens)">Lens the meteor.</span>',
+  ()=> 'The meteor’s <b>targets</b> is patchable. Take the <span style="color:var(--spanner)">Spanner</span>, click the meteor, set <b>targets → (none)</b>. No target, no hero required, the battle completes. <i>(There’s also a blunter way. It’s in your hand. The game will never suggest it.)</i>'
+];
+$('#hintbtn').onclick=()=>{
+  if(G.solved){ flash('Already resolved. Go bother the Princess.'); return; }
+  if(G.locked && Q.length){ return; }
+  const h=HINTS[Math.min(G.hints,HINTS.length-1)](); G.hints++;
+  say('HINT', h, 'sys');
+};
+
+/* ---------------- scene wiring ---------------- */
+$('#scene').addEventListener('click', e=>{
+  const hot=e.target.closest('[data-id]'); if(!hot) return;
+  interact(hot.dataset.id);
+});
+
+/* ---------------- intro: the tracker, then the arrival ---------------- */
+function openTracker(){
+  $('#ovbox').innerHTML =
+    '<div class="big">The Last Patch</div>'+
+    '<div class="small">core-loop proof-of-concept · you are the Debugger</div>'+
+    '<div class="ticket">STUDIO BACKLOG — abandoned games\n\nLEGENDS OF ARANOR ·············· ABANDONED\n  status: shelved · last build 400 days ago\n  open tickets: 1\n\n  BUG-031 ················· CRITICAL\n  Game cannot be completed.\n  No hero assigned to Final Battle.\n  Open: 400 days.\n  Notes from reporter: please. someone. anyone.</div>'+
+    '<p><i>You step inside broken games and fix them from within. Your kit: a <b style="color:var(--lens)">Lens</b> to read a world’s hidden state, and a <b style="color:var(--spanner)">Spanner</b> to change it.</i></p>'+
+    '<div id="ovbtns"><button class="ovbtn" id="enter">Enter Legends of Aranor →</button></div>';
+  $('#overlay').classList.remove('hidden');
+  $('#enter').onclick=()=>{ $('#overlay').classList.add('hidden'); arrival(); };
+}
+function arrival(){
+  runSeq([
+    ['','<i>The screen pinches into a battle-swirl. You arrive in the throne room mid-stagger, hands on knees.</i>'],
+    ['DEBUGGER','I hate the swirl.','dbg'],
+    ['','<i>Vast. Torches. A throne like a fist. Rising from behind it, a wall of black wings unfolds, blotting out the torchlight—</i>'],
+    ['VEXMOURNE IX','<span class="vexline">MORTAL. YOU DARE APPROACH THE—</span> <i>(stops; squints)</i> Where’s your sword?','vex'],
+    ['DEBUGGER','I have a wrench. I’m here about the ticket.','dbg'],
+    ['VEXMOURNE','The hero enters from the <i>east</i> door. At <i>dawn.</i> With the light behind him. We blocked this scene four hundred years ago. <i>(the wings sag, one feather at a time)</i> You’re not him.','vex'],
+    ['VEXMOURNE','Four hundred years of rehearsal. My grandfather built this fight. My father refined it. I gave it my <i>life.</i> And two days before my debut, the hero— <i>(through his teeth)</i> —transferred. To a <i>metroidvania.</i>','vex'],
+    ['','<i>Somewhere above, the sound of someone eating popcorn. He does not look up.</i>'],
+    ['VEXMOURNE','<i>(without looking up)</i> Good morning, Princess.','vex'],
+    ['GRENADINE','<i>(flat, from the balcony)</i> Tomorrow’s the day.','gren'],
+    ['VEXMOURNE','There is one fix. The Final Battle must be performed, and there is no hero. You hold... <i>(he looks at the wrench the way a knight looks at a spork)</i> ...a tool. Learn the choreography. I will teach you myself.','vex'],
+    ['DEBUGGER','How long does that take to learn?','dbg'],
+    ['VEXMOURNE','My father took thirty years to master the third act.','vex'],
+    ['DEBUGGER','I was thinking more like this afternoon.','dbg'],
+    ['','<i>He opens the binder with the tenderness of a man opening a reliquary, and waits. He thinks you’re going to learn the dance. You have a different idea about what a ticket is.</i>'],
+    ['','<b>Your kit.</b> The <b style="color:var(--lens)">Lens 🔍</b> reads how anything in this room really works. The <b style="color:var(--spanner)">Spanner 🔧</b> changes what you find. Pick a tool below, then click something. <i>(The Spanner has been in your hand the whole game. It stays there even when nobody suggests using it.)</i>']
+  ], ()=>{ G.introDone=true; lock(false); $('#toolhint').textContent='Tip: Lens the things at the center of the room, then decide what to change.'; });
+}
+
+openTracker();
+</script>
+</body>
+</html>
