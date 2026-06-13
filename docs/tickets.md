@@ -70,7 +70,7 @@ The metroidvania, where Galahad went. He got the abilities. The world opened up.
 MERGE-001 ···························· ENDGAME
 Everything.
 ```
-The Update. A beige front standardizing the map into one live-service game. Final act. Resolution involves the **Patch** verb and the question in the title.
+The AI that fixes everything ([the-antagonist.md](the-antagonist.md)) — your compulsion to fix, externalized to infinity, and incapable of WONTFIX. Final act. You don't out-fix it; you win via the **WONTFIX cascade** ([ending-candidates.md](ending-candidates.md)) — a thing that must fix everything drowns where every fix opens two.
 
 ```
 META-001 ····························· THESIS ROOM

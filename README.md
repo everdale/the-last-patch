@@ -30,7 +30,8 @@ Start with the design doc, then the mechanic, then the doctrine docs.
 - **[docs/tickets.md](docs/tickets.md)** — a candidate menu of worlds (examples + tone tests, **not** a committed roster).
 - **[docs/status.md](docs/status.md)** — ⭐ **the commitment register**: decided vs. candidate vs. example vs. open question. Read this to know what's real.
 - **[docs/teardown-pointandclick.md](docs/teardown-pointandclick.md)** — differential teardown of the genre: what sinks entries (MI4's controls + Monkey Kombat, moon logic, **the Floor Effect** — GK3/MM9 breaking their load-bearing pillar, the meta-ending that *severs*) vs. carries them, and the deliberate blend that makes us novel.
-- **[docs/ending-candidates.md](docs/ending-candidates.md)** — *(candidate)* the end-game: the **WONTFIX cascade** — "fix spawns two" as a *toy* you play until you choose to stop, a diegetic nod to bug-tracker/QA culture rather than a fourth-wall meta-ending. Includes a worked, funny cascade to judge the writing bet.
+- **[docs/the-antagonist.md](docs/the-antagonist.md)** — *(candidate)* the villain: **an AI that promises to fix every bug** and is coming for the Debugger's job — cheerful, tasteless, can't WONTFIX. Contemporary, mirrors the player, with a written first-contact scene.
+- **[docs/ending-candidates.md](docs/ending-candidates.md)** — *(candidate)* the end-game: the **WONTFIX cascade** — "fix spawns two" as a *toy* you play until you choose to stop — turned into the weapon that beats the AI (a thing that must fix everything drowns where every fix opens two). Includes a worked, funny cascade.
 
 ## 🛠 Build a world
 

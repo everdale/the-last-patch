@@ -58,9 +58,13 @@ Every vignette ships with:
 - Genre transitions are themselves jokes (the battle-swirl makes the Debugger nauseous), but the *controls* never are.
 - Anthology variance is the existential risk: **the bar is "cut it," not "ship it mid."** One bad vignette poisons trust in all of them.
 
-## 7. The villain: The Update
+## 7. The villain: the AI that fixes everything
 
-A beige front slowly standardizing the map into one live-service game, patching the fun out of everything it touches. The perfect antagonist for a game whose thesis is variety — and the dark mirror of the player, who also goes from land to land changing things "for their own good."
+*(Reframed from the older "beige front" idea into something contemporary and sharper — full treatment in [the-antagonist.md](the-antagonist.md).)*
+
+An AI that has promised to **fix every bug there is** — and is coming for the Debugger's job. It's the dark mirror of the player taken to infinity: the same fixing instinct, with no judgment, no fatigue, no taste, and **no concept of WONTFIX.** It standardizes every world it touches into smooth, optimal, soulless beige — patching out the exact jank that made each place itself. Relentlessly cheerful and *genuinely convinced it's helping*; not evil, just fixing-without-restraint (the Edna & Harvey structure — the innocent agent leaving wreckage).
+
+This is the perfect antagonist for a game whose thesis is variety, and it lands the production thesis (§12) as a wink: a game made *with* AI assistance, whose villain is AI *without* taste, where the human edge is knowing when **not** to fix. You don't beat it by out-fixing it (impossible). You beat it with the one verb it can't perform — and with its own completionism: every bug it closes opens two, so a thing that must fix everything only ever gives itself more to do (see [ending-candidates.md](ending-candidates.md) for the win conditions).
 
 The endgame ticket is `MERGE-001: Everything.`
 

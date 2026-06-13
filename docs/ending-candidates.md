@@ -68,11 +68,28 @@ Both work. (i) makes the ending a *choice you finally dare to make*; (ii) makes 
 - **Floor effect** ([teardown E](teardown-pointandclick.md)): the humor pillar carries it — which means the **bug-writing is the load-bearing craft**, and that's our strength. ✓ (and our exposure — see risk.)
 - **Genre nod, warm:** the finale lets the adventure genre look at itself with affection, consistent with how every world treats its genre.
 
+## The opponent: the AI that fixes everything
+
+The end-game now has a *target*, not just a toy. The antagonist ([the-antagonist.md](the-antagonist.md)) is an AI that has promised to fix every bug there is — your own compulsion to fix, externalized to infinity, and **incapable of WONTFIX.** That single incapacity is its fatal flaw, because in a world where every fix opens two, *a thing that must fix everything only ever gives itself more to do.* The cascade stops being a private joke and becomes the weapon.
+
+### Win conditions (Håkan's three — held as candidates)
+
+| # | How you win | Flavour | Notes |
+|---|---|---|---|
+| 1 | **It bankrupts itself.** It must fix every bug; each fix spawns two; its compute/token cost spirals until it's shut down to stop the bleeding. You barely fight — you just let its own completionism run. | **funniest / most contemporary** (token-cost satire, very *now*); a little cold | You win by *understanding the system*, not muscle. Wry. |
+| 2 | **You can say WONTFIX; it can't.** The duel is philosophical: it fixes, you decline, and the one verb it will never possess — *enough* — is the whole difference. | **truest / most comforting / warmest** | Says the human thing (judgment, "good enough") is irreplaceable. Best fit for the game's soul + the production thesis. Least "boss-fight." |
+| 3 | **The duel — flood it.** You weaponize the cascade: spawn bugs it's compelled to fix faster than it can fix them; each fix spawns two; it drowns. | **most gamey / climactic / satisfying as play** | A real final-boss mechanic; demonstrates the thesis *through play.* |
+
+### Recommended for now (a synthesis — sufficient to build toward)
+The **duel (3) as the mechanic**, *because* of (1) and (2): you flood it with bugs, it compulsively fixes each (spawning two), its cost-meter spirals (1) — and it loses precisely because it lacks the verb you have, WONTFIX (2). So the climax plays like a boss fight, satirizes AI token-economics, and lands the warm true note (restraint is the human edge) all at once. The final image: the AI, still cheerfully fixing, fixing, fixing as it powers down — and you, choosing to leave the last bug alone.
+
+This is a *plan to go with for now*, not a lock. We keep the pure variants in our pocket and let the worlds we build inform which finale rings truest. (Per Håkan: sufficient to proceed; revisit while developing the funny game that leads up to it.)
+
 ## What this lets us cut or demote (the brief was: find the nuggets, cut the rest)
 
-- **The Update** villain becomes *optional* — the antagonist is now your own compulsion to fix. (Cleaner; The Update was candidate anyway.)
 - **Patched Anonymous** becomes optional / a lighter mid-game beat rather than the thesis hammer.
 - **The meteor "no input" rhyme** — at most a faint echo (WONTFIX *is* a kind of declining-to-act), cuttable.
+- *(The old "beige front" Update is **reborn**, not cut: it's now the AI antagonist — see [the-antagonist.md](the-antagonist.md).)*
 
 ## Risks & the cheap gate
 
