@@ -34,6 +34,7 @@ Read every other doc through this lens: if an idea is tagged **candidate** or **
 3. **Theme.** Keep gamedev, or hold it as a swappable skin?
 4. **Demo fidelity / art.** Current stance: low-fi, text-forward prototypes with an *inferred* (non-animated) protagonist and placeholder visuals — prove logic/dialogue/mechanics, commit no character art until the foundation is set. (Håkan, point 5 — provisionally agreed.)
 
-## 🔬 Research to do (Håkan, point 4)
+## 🔬 Research
 
-- **Competitive teardown** of point-and-click balancing — how good ones (and instructive bad ones) pace puzzles vs. dialogue vs. exploration, gate the move-space, and manage inventory scope. Candidates to study: Monkey Island 1–2, Day of the Tentacle, Grim Fandango, Edna & Harvey, Thimbleweed Park, Return of the Obra Dinn (for deduction), and a deliberate bad/uneven example or two. Not started; do before locking puzzle/gating doctrine.
+- ✅ **Competitive teardown** — done: [teardown-pointandclick.md](teardown-pointandclick.md). Differential analysis (Escape from Monkey Island as the controlled probe) of what sinks vs. carries genre entries, and the deliberate blend that makes us novel rather than a clone. **Key finding that changes a decision:** Gilbert's meta-endings reliably *divide* fans because they *sever* rather than *recontextualise* — and our candidate ending is meta and thesis-heavy, so the "recontextualise test" is now a hard rule and an early-prototype priority.
+- ⏳ **Still worth doing:** a hands-on pacing pass once a real vignette is built (analysis can't settle whether the inspect/patch verb stays fun across 5+ worlds — the Monkey Kombat risk applies to any verb).
