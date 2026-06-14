@@ -1,41 +1,38 @@
 <!DOCTYPE html>
 <!--
-  THE LAST PATCH — proof-of-concept slice #4 (demo/poc.html)
+  THE LAST PATCH — proof-of-concept slice #5 (demo/poc.html)
   ===========================================================
-  Reworked after Håkan's red pen on the GRIMHOLLOW POC: the "investigation"
-  wasn't one (you could just Lens to see who was real), and the Well minigame
-  was "press all buttons." He asked me to research deduction-game design and
-  return with my own rework. Models studied:
-    * The Case of the Golden Idol / Return of the Obra Dinn — eliminate
-      suspects by access/alibi; the game only confirms once you've genuinely
-      narrowed it; multiple clue-paths to one conclusion.
-    * Ace Attorney — gather evidence, then PRESENT the right evidence to
-      puncture a specific lie; wrong evidence costs you, so no brute force.
+  Reworked after Håkan's red pen: the Grief Audit "works fine" but was a CHORE,
+  not a puzzle — three independent fetch-and-present tasks plus a linear fix,
+  with no interlocking, so you could solve it without ever engaging the heart
+  (Pip). His model: the Monkey Island 3 barber scene — a DEPENDENCY WEB where
+  items are outputs of one thread and inputs to another, sub-puzzles gate each
+  other, and the interconnection forces you to explore (and exhaust the
+  dialogue) before you can finish.
 
-  THE REWORK — "the Grief Audit":
-    * The Lens is now INSUFFICIENT. Everyone reads grief: OVERFLOW, because the
-      leak flooded the whole town with borrowed sorrow. You can't read off the
-      source — you must AUDIT the three loudest mourners and prove each is
-      faking, which drains the flood until the one genuine source is exposed.
-    * Three suspects, three DIFFERENT means (Håkan's examples):
-        - Baron Graveworth  → a contradiction: gather evidence (Tibbs delivers
-          his tears by the crate) and PRESENT it. He cracks.
-        - Widow Ashlace     → an ITEM that lights her up: show her "late"
-          husband's interminable poem; she laughs — he just "transferred."
-        - Threnody (pro mourner) → OBSERVATION: catch her on a coffee break
-          behind the tavern, perfectly cheerful. Contractual grief.
-    * Clearing all three GATES the fix (you can't tell real from flood until
-      the borrowed layer is drained). The fix is a DEDUCTION, not button-mash:
-      genuine grief needs a DESTINATION, and you must route it to the right one
-      — Leaderboard (becomes a score), shared Cistern (drowns everyone again),
-      or Crale's grave (correct — grief belongs to the one you lost), which
-      only unlocks once you've read the grave.
-    * George (the Fixer, after George Boole) still "normalizes" the boy at the
-      end — the villain plant + thesis, no speech.
+  THE WEB (a solvable partial order — no hard cycles):
 
-  Input is the model Håkan approved: LEFT-CLICK interact / talk / present,
-  RIGHT-CLICK look. Inventory items (the Spanner + evidence) are selected then
-  used/presented. CANDIDATE, always.
+    grave ─► CHISEL ─► pry the WIDOW'S CART ─► MANUSCRIPT ─► expose WIDOW
+                                                                 │ (freed, she
+                                                                 │  covers the
+                                                                 │  noon wail)
+                                                                 ▼
+    Tibbs ─► LEDGER ─► expose BARON ─► SIGNET           THRENODY can finally
+                                          │              break ─► expose her
+                                          ▼
+                               Wend stamps the GENUINE-GRIEF FORM
+    CHISEL ┐
+    Pip ─► EPITAPH ┤(+ audit done) ─► FINISH CRALE'S HEADSTONE ─► valid resting place
+                                                                     │
+       all frauds drained + form filed + headstone finished ─► WELL ─► route grief home
+
+  IN: chisel (grave), ledger (Tibbs), epitaph (Pip). OUT/internal: manuscript,
+  signet, form, finished headstone. The chisel is a SHARED TOOL (pries the cart
+  AND carves the headstone). You cannot finish without engaging Pip + the grave.
+
+  George (the Fixer, after George Boole) still normalizes Pip at the end — the
+  villain plant, the thesis, no speech. Input: LEFT-CLICK interact/talk/use,
+  RIGHT-CLICK look. Inventory items selected then used/presented. CANDIDATE.
 -->
 <html lang="en">
 <head>
@@ -45,31 +42,23 @@
 <style>
   :root{
     --bg:#0a0b10; --ink:#d7d9e2; --dim:#787c8c; --gold:#c9a94e;
-    --look:#7bb8d6; --act:#86c79a; --spanner:#d98a52; --ok:#7ec97e; --warn:#d9b06a; --evi:#cdbf7a;
-    --grim:#3a2f4a; --stone:#2b2d38; --stone2:#34313f;
-    --geo:#b8b2a0; --baron:#c58fb0; --wend:#9fb0c4; --tibbs:#cdb06a; --pip:#8fbfae;
-    --widow:#b79ad0; --thren:#9ac4b8; --grief:#6f78b0;
+    --look:#7bb8d6; --act:#86c79a; --spanner:#d98a52; --ok:#7ec97e; --warn:#d9b06a; --evi:#cdbf7a; --tool:#d98a52;
+    --stone:#2b2d38; --stone2:#34313f;
+    --geo:#b8b2a0; --baron:#c58fb0; --wend:#9fb0c4; --tibbs:#cdb06a; --pip:#8fbfae; --widow:#b79ad0; --thren:#9ac4b8; --grief:#6f78b0;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{background:var(--bg); color:var(--ink); font-family:Georgia,'Times New Roman',serif;
-    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:10px;
-    -webkit-user-select:none; user-select:none;}
+  body{background:var(--bg); color:var(--ink); font-family:Georgia,'Times New Roman',serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:10px; -webkit-user-select:none; user-select:none;}
   #wrap{width:min(940px,99vw);}
   h1{font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold); text-align:center; font-weight:normal; margin-bottom:1px;}
   #sub{text-align:center; color:var(--dim); font-size:12px; font-style:italic; margin-bottom:8px;}
   #sub b{color:var(--act);} #sub i.l{color:var(--look); font-style:normal;}
 
-  /* scene */
-  #scene{position:relative; width:100%; height:470px; border-radius:8px; overflow:hidden; cursor:default;
-    background:linear-gradient(180deg,#181626 0%,#15131f 42%,#100d18 100%);
-    border:3px solid #2a2636; box-shadow:inset 0 0 90px #000;}
-  #scene:before{content:""; position:absolute; inset:-20% 0 0 0; pointer-events:none; opacity:.10;
-    background:repeating-linear-gradient(74deg, transparent 0 7px, #b9c4e6 7px 8px); animation:rain .7s linear infinite;}
+  #scene{position:relative; width:100%; height:472px; border-radius:8px; overflow:hidden; cursor:default;
+    background:linear-gradient(180deg,#181626 0%,#15131f 42%,#100d18 100%); border:3px solid #2a2636; box-shadow:inset 0 0 90px #000;}
+  #scene:before{content:""; position:absolute; inset:-20% 0 0 0; pointer-events:none; opacity:.10; background:repeating-linear-gradient(74deg, transparent 0 7px, #b9c4e6 7px 8px); animation:rain .7s linear infinite;}
   @keyframes rain{from{transform:translateY(0)} to{transform:translateY(24px)}}
-  .ground{position:absolute; left:0; right:0; bottom:0; height:92px; z-index:1;
-    background:linear-gradient(180deg,#1a1622,#120f1a); border-top:2px solid #0c0a12; box-shadow:inset 0 14px 26px #000;}
-  .ground:after{content:""; position:absolute; inset:0; opacity:.5;
-    background:repeating-linear-gradient(90deg,#1c1828,#1c1828 52px,#171320 52px,#171320 104px);}
+  .ground{position:absolute; left:0; right:0; bottom:0; height:92px; z-index:1; background:linear-gradient(180deg,#1a1622,#120f1a); border-top:2px solid #0c0a12; box-shadow:inset 0 14px 26px #000;}
+  .ground:after{content:""; position:absolute; inset:0; opacity:.5; background:repeating-linear-gradient(90deg,#1c1828,#1c1828 52px,#171320 52px,#171320 104px);}
   #skyline{position:absolute; bottom:92px; left:0; right:0; height:84px; z-index:0; opacity:.5; display:flex; align-items:flex-end; gap:20px; padding:0 22px;}
   #skyline .spire{flex:1; max-width:30px; background:linear-gradient(180deg,#211b2c,#171221); border:1px solid #2c2438; border-bottom:none;}
 
@@ -79,36 +68,28 @@
   .hot.hovL:hover{filter:drop-shadow(0 0 9px var(--act)) brightness(1.13);}
   .hot .tpose{font-size:40px; line-height:1; filter:grayscale(.3) brightness(.95);}
   .hot.cleared .tpose{filter:none; opacity:1;}
-  .gbox{background:linear-gradient(180deg,var(--stone2),var(--stone)); border:2px solid #44485a; border-radius:4px;
-    color:#aab; font-family:'Courier New',monospace; font-size:10px; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.4;}
+  .gbox{background:linear-gradient(180deg,var(--stone2),var(--stone)); border:2px solid #44485a; border-radius:4px; color:#aab; font-family:'Courier New',monospace; font-size:10px; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.4;}
   .tag{font-family:'Courier New',monospace; font-size:9px; letter-spacing:.04em; color:var(--dim); margin-top:3px; white-space:nowrap;}
 
-  #aff{position:absolute; z-index:44; pointer-events:none; display:none; background:#0b0e16; border:1px solid #3a3e50; border-radius:6px;
-    padding:5px 9px; font-family:'Courier New',monospace; font-size:11px; white-space:nowrap; box-shadow:0 6px 18px #000;}
+  #aff{position:absolute; z-index:44; pointer-events:none; display:none; background:#0b0e16; border:1px solid #3a3e50; border-radius:6px; padding:5px 9px; font-family:'Courier New',monospace; font-size:11px; white-space:nowrap; box-shadow:0 6px 18px #000;}
   #aff .nm{color:var(--ink); display:block; margin-bottom:3px;} #aff .L{color:var(--act);} #aff .R{color:var(--look);}
 
-  #callout{position:absolute; z-index:40; max-width:300px; display:none; background:#0a1016; border:1px solid var(--look);
-    border-radius:6px; padding:10px 12px; font-family:'Courier New',monospace; font-size:12px; color:#cfe6f2; line-height:1.55; box-shadow:0 8px 26px #000;}
+  #callout{position:absolute; z-index:40; max-width:302px; display:none; background:#0a1016; border:1px solid var(--look); border-radius:6px; padding:10px 12px; font-family:'Courier New',monospace; font-size:12px; color:#cfe6f2; line-height:1.55; box-shadow:0 8px 26px #000;}
   #callout .hd{color:var(--look); font-weight:bold; display:block; margin-bottom:5px;}
-  #callout .k{color:#5f7e8a;} #callout .of{color:var(--spanner); font-weight:bold;} #callout .gen{color:var(--pip); font-weight:bold;}
-  #callout .perf{color:var(--baron); font-weight:bold;} #callout .lk{color:#c7b39a;} #callout .miss{color:var(--warn); font-weight:bold;}
+  #callout .k{color:#5f7e8a;} #callout .of{color:var(--spanner); font-weight:bold;} #callout .gen{color:var(--pip); font-weight:bold;} #callout .perf{color:var(--baron); font-weight:bold;} #callout .lk{color:#c7b39a;} #callout .miss{color:var(--warn); font-weight:bold;}
 
-  #bubble{position:absolute; z-index:46; max-width:372px; min-width:200px; display:none; background:#15121d; border:2px solid #3c3550;
-    border-radius:10px; padding:11px 14px 13px; box-shadow:0 10px 30px #000;}
+  #bubble{position:absolute; z-index:46; max-width:380px; min-width:200px; display:none; background:#15121d; border:2px solid #3c3550; border-radius:10px; padding:11px 14px 13px; box-shadow:0 10px 30px #000;}
   #bubble:after{content:""; position:absolute; bottom:-11px; left:30px; border-left:11px solid transparent; border-right:11px solid transparent; border-top:11px solid #3c3550;}
   #bubble .who{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:4px;}
-  .who.baron{color:var(--baron)!important;} .who.wend{color:var(--wend)!important;} .who.tibbs{color:var(--tibbs)!important;}
-  .who.pip{color:var(--pip)!important;} .who.geo{color:var(--geo)!important;} .who.widow{color:var(--widow)!important;} .who.thren{color:var(--thren)!important;} .who.dbg{color:var(--ink)!important;}
+  .who.baron{color:var(--baron)!important;} .who.wend{color:var(--wend)!important;} .who.tibbs{color:var(--tibbs)!important;} .who.pip{color:var(--pip)!important;} .who.geo{color:var(--geo)!important;} .who.widow{color:var(--widow)!important;} .who.thren{color:var(--thren)!important;} .who.dbg{color:var(--ink)!important;}
   #bubble .tx{font-size:15px; line-height:1.5;} #bubble .tx i{color:var(--dim);} #bubble .tx b{color:var(--gold);}
   #bubble .adv{position:absolute; right:11px; bottom:5px; color:var(--gold); font-size:13px; animation:bob 1s infinite;}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
   #topics{margin-top:9px; display:none; flex-direction:column; gap:5px;}
   #topics .top{background:#1d1830; border:1px solid #423a58; color:var(--ink); font-family:Georgia,serif; font-size:13px; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer;}
-  #topics .top:hover{border-color:var(--gold); background:#261f3c;}
-  #topics .top.leave{color:var(--dim); border-style:dashed;} #topics .top.key{border-color:var(--evi); color:var(--evi);}
+  #topics .top:hover{border-color:var(--gold); background:#261f3c;} #topics .top.leave{color:var(--dim); border-style:dashed;} #topics .top.key{border-color:var(--evi); color:var(--evi);}
   #topics .top:before{content:"▸ "; color:var(--gold);} #topics .top.leave:before{content:"× "; color:var(--dim);} #topics .top.key:before{content:"❖ "; color:var(--evi);}
 
-  /* the Weeping Well conduit panel */
   #conduit{position:absolute; inset:14px; z-index:48; display:none; flex-direction:column; background:rgba(9,8,14,.97); border:2px solid #3c3550; border-radius:8px; padding:14px 16px;}
   #conduit h3{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--look); text-align:center; font-weight:normal;}
   #conduit .csub{text-align:center; color:var(--dim); font-size:12px; font-style:italic; margin:3px 0 12px;}
@@ -127,71 +108,47 @@
   #status{margin-top:9px; min-height:44px; background:#11101a; border:1px solid #262232; border-radius:7px; padding:9px 14px; font-size:14.5px; line-height:1.5; color:var(--ink);}
   #status i{color:var(--dim);} #status b{color:var(--gold);} #status .sp{color:var(--spanner);} #status .okk{color:var(--ok);} #status .look{color:var(--look);} #status .evi{color:var(--evi);}
 
-  /* case file: spanner + evidence + audit board */
   #tray{margin-top:9px; display:flex; gap:11px; align-items:flex-start; flex-wrap:wrap;}
-  .slot{width:58px; height:58px; border:2px solid #383448; border-radius:8px; background:#141220; display:flex; align-items:center; justify-content:center; font-size:23px; position:relative; cursor:pointer; transition:all .12s;}
+  .slot{width:56px; height:56px; border:2px solid #383448; border-radius:8px; background:#141220; display:flex; align-items:center; justify-content:center; font-size:22px; position:relative; cursor:pointer; transition:all .12s;}
   .slot:hover{border-color:#564f70;} .slot.sel{border-color:var(--spanner); box-shadow:0 0 13px var(--spanner); background:#241a14;}
   .slot.evi.sel{border-color:var(--evi); box-shadow:0 0 13px var(--evi); background:#221f12;}
   .slot .cap{position:absolute; bottom:-14px; left:50%; transform:translateX(-50%); font-size:8.5px; color:var(--dim); white-space:nowrap;}
-  #audit{margin-left:6px; min-width:220px; background:#0e0d16; border:1px solid #2a2738; border-radius:7px; padding:7px 11px; font-family:'Courier New',monospace; font-size:11px; line-height:1.7; color:var(--dim);}
-  #audit b{color:var(--evi); font-weight:normal; letter-spacing:.1em;}
-  #audit .s{color:var(--ink);} #audit .x{color:var(--ok);} #audit .src{color:var(--warn);}
+  #audit{margin-left:4px; min-width:236px; background:#0e0d16; border:1px solid #2a2738; border-radius:7px; padding:7px 11px; font-family:'Courier New',monospace; font-size:11px; line-height:1.7; color:var(--dim);}
+  #audit b{color:var(--evi); font-weight:normal; letter-spacing:.1em;} #audit .s{color:var(--ink);} #audit .x{color:var(--ok);} #audit .src{color:var(--warn);}
   #hintbtn{margin-left:auto; align-self:center; background:none; border:1px solid #383448; color:var(--dim); font-family:Georgia,serif; font-size:12px; padding:6px 11px; border-radius:6px; cursor:pointer;}
   #hintbtn:hover{border-color:var(--gold); color:var(--ink);}
 
   #foot{text-align:center; color:#34313f; font-size:11px; margin-top:11px; letter-spacing:.05em;} #foot a{color:#52506a;}
 
-  #overlay{position:fixed; inset:0; background:rgba(6,6,10,.95); z-index:60; display:flex; align-items:center; justify-content:center; padding:18px;}
-  #overlay.hidden{display:none;}
+  #overlay{position:fixed; inset:0; background:rgba(6,6,10,.95); z-index:60; display:flex; align-items:center; justify-content:center; padding:18px;} #overlay.hidden{display:none;}
   #ovbox{width:min(660px,96vw); max-height:94vh; overflow:auto;}
   #ovbox .big{font-size:15px; letter-spacing:.24em; text-transform:uppercase; color:var(--gold); text-align:center; margin-bottom:4px;}
   #ovbox .small{text-align:center; color:var(--dim); font-style:italic; font-size:13px; margin-bottom:18px;}
-  #ovbox .ticket{background:#06080d; border:1px solid #2a2640; color:#b9bce0; font-family:'Courier New',monospace; font-size:13.5px; white-space:pre-wrap; line-height:1.6; padding:18px 22px; border-radius:5px;}
-  #ovbox .ticket.warn{border-color:#5a4420; color:var(--warn);}
+  #ovbox .ticket{background:#06080d; border:1px solid #2a2640; color:#b9bce0; font-family:'Courier New',monospace; font-size:13.5px; white-space:pre-wrap; line-height:1.6; padding:18px 22px; border-radius:5px;} #ovbox .ticket.warn{border-color:#5a4420; color:var(--warn);}
   #ovbox p{font-size:15.5px; line-height:1.6; margin:15px 4px;} #ovbox p i{color:var(--dim);}
   #ovbtns{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px;}
-  .ovbtn{background:#1c1830; border:2px solid var(--gold); color:var(--gold); font-family:Georgia,serif; font-size:15px; padding:11px 22px; border-radius:8px; cursor:pointer;}
-  .ovbtn:hover{background:#272040;}
+  .ovbtn{background:#1c1830; border:2px solid var(--gold); color:var(--gold); font-family:Georgia,serif; font-size:15px; padding:11px 22px; border-radius:8px; cursor:pointer;} .ovbtn:hover{background:#272040;}
 </style>
 </head>
 <body>
 <div id="wrap">
   <h1>The Last Patch &nbsp;·&nbsp; core-loop POC</h1>
-  <div id="sub">GRIMHOLLOW — BUG-413 · the Grief Audit &nbsp;·&nbsp; <b>left-click</b> interact / talk / present · <i class="l">right-click</i> look. The bug isn't labeled — <i>diagnose</i> it.</div>
+  <div id="sub">GRIMHOLLOW — BUG-413 · the Grief Audit &nbsp;·&nbsp; <b>left-click</b> interact / talk / use · <i class="l">right-click</i> look. The bug isn't labeled — <i>diagnose</i> it.</div>
 
   <div id="scene">
     <div id="skyline"></div>
-
     <div class="hot" id="hs-sky" data-id="sky" style="top:10px; left:8px;"><div class="art" style="font-size:24px; opacity:.8">🌧️</div></div>
 
-    <!-- Grief Leaderboard -->
     <div class="hot" id="hs-board" data-id="board" style="top:46px; left:3%;">
-      <div class="art"><div class="gbox" id="board-box" style="width:98px;height:80px;flex-direction:column;">GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--baron)">1. Graveworth</span></div></div>
-      <div class="tag">notice board</div>
+      <div class="art"><div class="gbox" id="board-box" style="width:98px;height:80px;flex-direction:column;">GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--baron)">1. Graveworth</span></div></div><div class="tag">notice board</div>
     </div>
-
-    <!-- the Weeping Well (raised center) -->
     <div class="hot" id="hs-well" data-id="well" style="bottom:150px; left:50%; transform:translateX(-50%);">
-      <div class="art"><div class="gbox" id="well-box" style="width:104px;height:60px;flex-direction:column;border-color:#4a4a6a;">THE WEEPING WELL<br><span id="well-state" style="color:var(--spanner)">⮃ overflowing</span></div></div>
-      <div class="tag">shared sorrow</div>
+      <div class="art"><div class="gbox" id="well-box" style="width:104px;height:60px;flex-direction:column;border-color:#4a4a6a;">THE WEEPING WELL<br><span id="well-state" style="color:var(--spanner)">⮃ overflowing</span></div></div><div class="tag">shared sorrow</div>
     </div>
+    <div class="hot" id="hs-grave" data-id="grave" style="bottom:178px; right:4%;"><div class="art" id="grave-art" style="font-size:23px; opacity:.7">🪦</div><div class="tag" id="grave-tag">a fresh grave</div></div>
+    <div class="hot" id="hs-shrine" data-id="shrine" style="bottom:158px; left:74%;"><div class="art"><div class="gbox" id="shrine-box" style="width:50px;height:40px;">📦</div></div><div class="tag">a memorial cart</div></div>
+    <div class="hot" id="hs-back" data-id="back" style="bottom:172px; left:29%;"><div class="art"><div class="gbox" style="width:54px;height:38px;">back alley</div></div><div class="tag">behind the Rat</div></div>
 
-    <!-- the undertaker's grave (raised right) -->
-    <div class="hot" id="hs-grave" data-id="grave" style="bottom:178px; right:4%;">
-      <div class="art" style="font-size:23px; opacity:.7">🪦</div><div class="tag">a fresh grave</div>
-    </div>
-
-    <!-- the Widow's memorial cart (search → manuscript) -->
-    <div class="hot" id="hs-shrine" data-id="shrine" style="bottom:158px; left:74%;">
-      <div class="art"><div class="gbox" style="width:50px;height:40px;">🕯️</div></div><div class="tag">a memorial cart</div>
-    </div>
-
-    <!-- behind the tavern (observe Threnody on break) -->
-    <div class="hot" id="hs-back" data-id="back" style="bottom:172px; left:29%;">
-      <div class="art"><div class="gbox" style="width:54px;height:38px;">back alley</div></div><div class="tag">behind the Rat</div>
-    </div>
-
-    <!-- ground row of NPCs -->
     <div class="hot" id="hs-baron" data-id="baron" style="bottom:96px; left:11%;"><div class="art tpose">🎭</div><div class="tag" style="color:var(--baron)">Baron Graveworth</div></div>
     <div class="hot" id="hs-wend" data-id="wend" style="bottom:96px; left:26%;"><div class="art tpose">🧎</div><div class="tag" style="color:var(--wend)">Wend</div></div>
     <div class="hot" id="hs-tibbs" data-id="tibbs" style="bottom:98px; left:40%;"><div class="art tpose">🍺</div><div class="tag" style="color:var(--tibbs)">Tibbs</div></div>
@@ -207,17 +164,13 @@
     <div id="conduit">
       <h3>The Weeping Well — Conduit</h3>
       <div class="csub">all the village's grief is piped through here. one source is overflowing it.</div>
-      <div id="cflow"><div id="cfill"></div></div>
-      <div id="cflowlbl"></div>
-      <div id="cstep"></div>
-      <div id="cvalve"></div>
-      <div id="cdest"></div>
-      <div id="cmsg"></div>
+      <div id="cflow"><div id="cfill"></div></div><div id="cflowlbl"></div>
+      <div id="cstep"></div><div id="cvalve"></div><div id="cdest"></div><div id="cmsg"></div>
       <button id="cback">← step back from the well</button>
     </div>
   </div>
 
-  <div id="status"><i>The village square of <b>Mournwell</b>, in the abandoned grimdark RPG <b>GRIMHOLLOW</b>. Everyone is weeping, competitively, and nothing works. The Lens shows you everyone's grief is <span class="of">overflowing</span> — but that can't all be real. Find out <b>who actually means it.</b></i></div>
+  <div id="status"><i>The village square of <b>Mournwell</b>, in the abandoned grimdark RPG <b>GRIMHOLLOW</b>. Everyone is weeping, competitively, and nothing works. The Lens shows you everyone's grief is <span class="of">overflowing</span> — but that can't all be real. Find out <b>who actually means it</b>, then give the real grief somewhere to go.</i></div>
 
   <div id="tray">
     <div class="slot" id="slot-spanner" data-item="spanner">🔧<span class="cap">Spanner</span></div>
@@ -226,7 +179,7 @@
     <button id="hintbtn">Stuck? Hint ▸</button>
   </div>
 
-  <div id="foot">THE LAST PATCH — core-loop POC · diagnose, don't toggle · GRIMHOLLOW was abandoned after Act I · <a href="index.html">dialogue demo</a> · <a href="puzzle-proto.html">mechanic demo</a></div>
+  <div id="foot">THE LAST PATCH — core-loop POC · an interlocking puzzle, not a checklist · GRIMHOLLOW abandoned after Act I · <a href="index.html">dialogue demo</a> · <a href="puzzle-proto.html">mechanic demo</a></div>
 </div>
 
 <div id="overlay"><div id="ovbox"></div></div>
@@ -238,30 +191,37 @@ const el=id=>document.getElementById(id);
 /* ===================================================================== state */
 const S={
   inHand:null, dialogue:false, conduit:false, solved:false, hints:0,
-  evidence:[],                                  // collected clue items
+  items:['spanner'],                                  // tray contents
   cleared:{baron:false, widow:false, threnody:false},
-  // clue/flag discoveries that unlock evidence or actions:
-  gotLedger:false, knowBaronFather:false,       // → clear Baron
-  gotManuscript:false,                          // → clear Widow
-  knowThrenPro:false,                           // talked to Threnody (she's a hired mourner)
-  learnedMechanism:false, metPip:false, readGrave:false,
+  // thread flags:
+  gotLedger:false, knowBaronFather:false,
+  haveChisel:false, cartPried:false, gotManuscript:false,
+  widowCovering:false, knowThrenPro:false,
+  haveSignet:false, formFiled:false,
+  metPip:false, epitaph:false, headstone:false, learnedMechanism:false,
   // conduit:
   genTorques:0, genOpen:false, routed:null
 };
-const ITEM={ spanner:{icon:'🔧',cap:'Spanner',kind:'tool'},
+const ITEM={
+  spanner:{icon:'🔧',cap:'Spanner',kind:'tool'},
+  chisel:{icon:'🔨',cap:"Crale's chisel",kind:'tool'},
   ledger:{icon:'📒',cap:'glycerin ledger',kind:'evi'},
-  manuscript:{icon:'📜',cap:'the Cantos',kind:'evi'} };
+  manuscript:{icon:'📜',cap:'the Cantos',kind:'evi'},
+  signet:{icon:'💍',cap:'committee signet',kind:'evi'}
+};
 const allCleared=()=>S.cleared.baron&&S.cleared.widow&&S.cleared.threnody;
+const fixReady=()=>allCleared()&&S.formFiled&&S.headstone;
 
 /* ===================================================================== ui helpers */
 function status(html){ el('status').innerHTML=html; }
 function clearTransient(){ el('callout').style.display='none'; }
-function addEvidence(id){ if(!S.evidence.includes(id)){ S.evidence.push(id); renderTray(); } }
+function giveItem(id){ if(!S.items.includes(id)){ S.items.push(id); renderTray(); } }
+function takeItem(id){ S.items=S.items.filter(x=>x!==id); if(S.inHand===id) S.inHand=null; renderTray(); }
 function renderTray(){
-  el('slot-spanner').classList.toggle('sel', S.inHand==='spanner');
+  const sp=el('slot-spanner'); sp.classList.toggle('sel', S.inHand==='spanner');
   const box=el('evislots'); box.innerHTML='';
-  S.evidence.forEach(id=>{
-    const d=document.createElement('div'); d.className='slot evi'+(S.inHand===id?' sel':''); d.dataset.item=id;
+  S.items.filter(i=>i!=='spanner').forEach(id=>{
+    const d=document.createElement('div'); d.className='slot '+(ITEM[id].kind==='evi'?'evi ':'')+(S.inHand===id?'sel':''); d.dataset.item=id;
     d.innerHTML=ITEM[id].icon+'<span class="cap">'+ITEM[id].cap+'</span>';
     d.addEventListener('click', e=>{ e.stopPropagation(); if(S.dialogue||S.conduit) return; selectItem(id); });
     d.addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation(); inspectItem(id); });
@@ -270,312 +230,304 @@ function renderTray(){
   renderAudit();
 }
 function renderAudit(){
-  const row=(name,done,extra)=> '<span class="s">'+name+':</span> '+(done?'<span class="x">faking ✓</span>':(extra||'?'));
-  let src;
-  if(allCleared()) src='<span class="src">Pip — exposed</span>';
-  else src='??? <span style="color:#55576a">('+[S.cleared.baron,S.cleared.widow,S.cleared.threnody].filter(x=>!x).length+' to clear)</span>';
-  el('audit').innerHTML='<b>GRIEF AUDIT</b><br>'+
-    row('Graveworth',S.cleared.baron)+'<br>'+
-    row('Ashlace',S.cleared.widow)+'<br>'+
-    row('Threnody',S.cleared.threnody)+'<br>'+
-    '<span class="s">true source:</span> '+src;
+  const row=(n,done)=>'<span class="s">'+n+':</span> '+(done?'<span class="x">faking ✓</span>':'?');
+  let src = allCleared()?'<span class="src">Pip — exposed</span>':'??? <span style="color:#55576a">('+[!S.cleared.baron,!S.cleared.widow,!S.cleared.threnody].filter(Boolean).length+' to clear)</span>';
+  let fix='';
+  if(allCleared()) fix='<br><span class="s">to fix the Well:</span> '+
+    (S.formFiled?'<span class="x">form ✓</span>':'form?')+' · '+
+    (S.headstone?'<span class="x">resting place ✓</span>':'resting place?');
+  el('audit').innerHTML='<b>GRIEF AUDIT</b><br>'+row('Graveworth',S.cleared.baron)+'<br>'+row('Ashlace',S.cleared.widow)+'<br>'+row('Threnody',S.cleared.threnody)+'<br><span class="s">true source:</span> '+src+fix;
 }
 function selectItem(id){
   S.inHand=(S.inHand===id?null:id); renderTray();
   if(!S.inHand){ status('<i>Put it away.</i>'); return; }
+  const k=ITEM[id].kind;
   if(id==='spanner') status('<i>Holding the <b>Spanner</b>. Use it on the world — out where the values live.</i>');
-  else status('<i>Holding <span class="evi">'+ITEM[id].cap+'</span>. <b>Left-click whoever it incriminates</b> to present it. (Right-click empty to put it away.)</i>');
+  else if(k==='tool') status('<i>Holding <span class="sp">'+ITEM[id].cap+'</span>. <b>Left-click what to use it on.</b></i>');
+  else status('<i>Holding <span class="evi">'+ITEM[id].cap+'</span>. <b>Left-click whoever it concerns</b> to present it. (Right-click empty to put it away.)</i>');
 }
 function inspectItem(id){ clearTransient();
   const t={ spanner:'<span class="hd">[ITEM] Spanner</span><span class="k">does:</span> writes values you can see, out in the world<br><span class="k">size field:</span> MAX <span class="lk">(no validation on the requisition)</span>',
-    ledger:'<span class="hd">[EVIDENCE] glycerin ledger</span>Tibbs\' delivery book. <span class="k">Graveworth, B. — </span>"tears, theatrical, by the crate." Weekly. <span class="lk">Paid in advance.</span>',
-    manuscript:'<span class="hd">[EVIDENCE] the Cantos of Mild Inconvenience</span>Vol. IX of an epic poem by one <span class="k">Aldous Ashlace.</span> <span class="lk">A forwarding note inside: "gone to a sitcom. do not follow."</span>'}[id];
+    chisel:'<span class="hd">[TOOL] Crale\'s chisel</span>An undertaker\'s chisel, handle worn smooth. <span class="k">good for:</span> carving letters — or <span class="lk">prying things open.</span>',
+    ledger:'<span class="hd">[EVIDENCE] glycerin ledger</span>Tibbs\' delivery book. <span class="k">Graveworth, B. —</span> "tears, theatrical, by the crate." Weekly, paid in advance.',
+    manuscript:'<span class="hd">[EVIDENCE] the Cantos of Mild Inconvenience</span>Vol. IX of an epic by <span class="k">Aldous Ashlace.</span> <span class="lk">A forwarding note inside: "gone to a sitcom. do not follow."</span>',
+    signet:'<span class="hd">[EVIDENCE] committee signet</span>The Baron\'s chairman\'s seal — appeals committee, grief, Mournwell. <span class="lk">Authorizes... paperwork.</span>'}[id];
   const c=el('callout'); c.innerHTML=t; c.style.left='12px'; c.style.top=(el('scene').getBoundingClientRect().height-150)+'px'; c.style.display='block';
   status('<span class="look">You study the '+ITEM[id].cap+'.</span>');
 }
 
 /* ===================================================================== hover affordance */
-const NAME={ sky:'The sky', board:'Grief Leaderboard', well:'The Weeping Well', grave:'A fresh grave', shrine:'A memorial cart', back:'Behind the tavern',
+const NAME={ sky:'The sky', board:'Grief Leaderboard', well:'The Weeping Well', grave:'Crale\'s grave', shrine:'A memorial cart', back:'Behind the tavern',
   baron:'Baron Graveworth', wend:'Wend', tibbs:'Tibbs', thren:'Threnody', widow:'Widow Ashlace', pip:'A quiet boy' };
 function leftVerb(id){
-  if(S.inHand==='spanner') return 'use Spanner';
-  if(S.inHand) return 'present '+ITEM[S.inHand].cap;
+  if(S.inHand){ const k=ITEM[S.inHand].kind; return (k==='evi'?'present ':'use ')+ITEM[S.inHand].cap; }
   if(['baron','wend','tibbs','thren','widow','pip'].includes(id)) return 'talk';
   if(id==='well') return 'approach'; if(id==='shrine') return 'search'; if(id==='back') return 'look around';
+  if(id==='grave') return S.haveChisel?'examine':'take chisel';
   return 'examine';
 }
-function showAff(id, host){
-  const a=el('aff'); a.querySelector('.nm').textContent=NAME[id]||id; a.querySelector('.L').textContent='L: '+leftVerb(id);
-  const s=el('scene').getBoundingClientRect(), r=host.getBoundingClientRect();
-  let x=r.left-s.left+r.width/2-66, y=r.top-s.top-46; x=Math.max(6,Math.min(x,s.width-160)); if(y<4) y=r.bottom-s.top+8;
-  a.style.left=x+'px'; a.style.top=y+'px'; a.style.display='block';
-}
+function showAff(id, host){ const a=el('aff'); a.querySelector('.nm').textContent=NAME[id]||id; a.querySelector('.L').textContent='L: '+leftVerb(id);
+  const s=el('scene').getBoundingClientRect(), r=host.getBoundingClientRect(); let x=r.left-s.left+r.width/2-70, y=r.top-s.top-46; x=Math.max(6,Math.min(x,s.width-168)); if(y<4) y=r.bottom-s.top+8;
+  a.style.left=x+'px'; a.style.top=y+'px'; a.style.display='block'; }
 const hideAff=()=>el('aff').style.display='none';
 
-/* ===================================================================== inspect (right-click) — Lens is INSUFFICIENT until you audit */
+/* ===================================================================== inspect (Lens INSUFFICIENT) */
+function auditCard(name, role, line){ return `<span class="hd">${name}</span><span class="k">role:</span> ${role}<br>${line}`; }
 const STATE={
   sky:()=>`<span class="hd">[ASSET] sky_grimdark</span><span class="k">weather:</span> drizzle<br><span class="k">since:</span> always<br><span class="k">forecast:</span> drizzle, chance of drizzle`,
   board:()=>`<span class="hd">GRIEF LEADERBOARD</span><span class="k">1.</span> Baron Graveworth — "Thrice-Bereaved"<br><span class="k">appeals committee:</span> <span class="miss">Graveworth, the elder</span> <span class="lk">(the "slain" father — chairs it)</span><br><span class="k">sort key:</span> grief, <span class="perf">as performed</span>`,
-  baron:()=>auditCard('Baron Graveworth','#1, defends title', S.cleared.baron?'<span class="k">grief (true):</span> 2 <span class="lk">(comfortable, honestly)</span>':'<span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="lk">(real, or borrowed? can\'t tell — flooded)</span>'),
-  widow:()=>auditCard('Widow Ashlace','inconsolable', S.cleared.widow?'<span class="k">grief (true):</span> 0 <span class="lk">(thrilled, frankly)</span>':'<span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="lk">(flooded — the Lens can\'t separate real from borrowed)</span>'),
+  baron:()=>auditCard('Baron Graveworth','#1, defends title', S.cleared.baron?'<span class="k">grief (true):</span> 2 <span class="lk">(comfortable, honestly)</span>':'<span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="lk">(real, or borrowed? the Lens can\'t tell — flooded)</span>'),
+  widow:()=>auditCard('Widow Ashlace','inconsolable', S.cleared.widow?'<span class="k">grief (true):</span> 0 <span class="lk">(thrilled, frankly)</span>':'<span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="lk">(flooded — find what breaks the act)</span>'),
   thren:()=>auditCard('Threnody','professional mourner', S.cleared.threnody?'<span class="k">grief (true):</span> 0 <span class="lk">(off the clock)</span>':'<span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="lk">(flooded)</span> &nbsp;<span class="k">contract:</span> '+(S.knowThrenPro?'<span class="miss">union, 9–5</span>':'?')),
-  wend:()=>`<span class="hd">WEND — KEEPER OF THE WELL</span><span class="k">role:</span> grief intake &amp; routing<br><span class="k">grief:</span> 0 <span class="lk">(processed too much to feel any)</span><br><span class="k">knows:</span> how the Well is plumbed`,
-  tibbs:()=>`<span class="hd">TIBBS — THE DROWNED RAT</span><span class="k">grief:</span> 0 <span class="lk">(business is booming)</span><br><span class="k">mood:</span> <span style="color:var(--ok)">cheerful</span> <span class="lk">(the only one)</span><br><span class="k">supplies:</span> the town, with... a lot of things`,
+  wend:()=>`<span class="hd">WEND — KEEPER OF THE WELL</span><span class="k">role:</span> grief intake &amp; routing<br><span class="k">grief:</span> 0 <span class="lk">(processed too much to feel any)</span><br><span class="k">will route:</span> only grief that\'s been <span class="perf">filed</span><br><span class="k">new forms:</span> <span class="miss">need committee authorization</span>`,
+  tibbs:()=>`<span class="hd">TIBBS — THE DROWNED RAT</span><span class="k">grief:</span> 0 <span class="lk">(business is booming)</span><br><span class="k">mood:</span> <span style="color:var(--ok)">cheerful</span> <span class="lk">(the only one)</span><br><span class="k">supplies:</span> the town — and keeps the books`,
   pip:()=> S.metPip
-    ? `<span class="hd">PIP HARTWOOD — undertaker's apprentice</span><span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="gen">(genuine, uncapped)</span><br><span class="k">source:</span> ${allCleared()?'<span class="gen">true — the only one left standing</span>':'<span class="lk">looks real, but so does everyone right now</span>'}<br><span class="k">grieves:</span> old Crale, his master<br><span class="k">filed it:</span> <span class="miss">never — there\'s no form for the real kind</span>`
+    ? `<span class="hd">PIP HARTWOOD — undertaker's apprentice</span><span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="gen">(genuine, uncapped)</span><br><span class="k">source:</span> ${allCleared()?'<span class="gen">true — the only one left</span>':'<span class="lk">looks real, but so does everyone right now</span>'}<br><span class="k">grieves:</span> old Crale, his master<br><span class="k">unfinished:</span> <span class="miss">his master\'s headstone</span>`
     : `<span class="hd">[NPC] "a quiet boy"</span><span class="k">grief:</span> <span class="of">OVERFLOW</span> <span class="lk">(like everyone — flooded)</span><br><span class="k">note:</span> he isn\'t performing it. nobody\'s looking at him.`,
-  grave:()=>`<span class="hd">[OBJECT] fresh grave</span><span class="k">here lies:</span> CRALE, undertaker of Mournwell<br><span class="k">buried by:</span> his apprentice, alone<br><span class="k">attendance at funeral:</span> 1<br><span class="k">epitaph:</span> <span class="lk">unfinished — he was carving his own; got as far as the name</span>`,
-  shrine:()=>`<span class="hd">[OBJECT] memorial cart — "ALDOUS, BELOVED"</span><span class="k">contents:</span> portraits, candles, ${S.gotManuscript?'<span class="lk">(you took the manuscript)</span>':'a very thick <span class="of">manuscript</span>'}<br><span class="k">note:</span> the grief here is loud. the cart is on wheels.`,
-  back:()=>`<span class="hd">[AREA] behind the Drowned Rat</span><span class="k">contains:</span> empty kegs, a coffee pot, ${S.cleared.threnody?'<span class="lk">(an off-duty mourner, already spotted)</span>':'<span class="of">someone on a break</span>'}`,
+  grave:()=> S.headstone
+    ? `<span class="hd">[OBJECT] Crale's grave</span><span class="k">headstone:</span> <span style="color:var(--ok)">finished</span><br><span class="k">epitaph:</span> "a steady hand, and time enough"<br><span class="k">status:</span> a proper resting place at last`
+    : `<span class="hd">[OBJECT] Crale's grave</span><span class="k">here lies:</span> CRALE, undertaker of Mournwell<br><span class="k">tool present:</span> ${S.haveChisel?'<span class="lk">(you took the chisel)</span>':'<span class="of">his own chisel</span>'}<br><span class="k">headstone:</span> <span class="miss">unfinished — he was carving his own; got to the name</span>`,
+  shrine:()=>`<span class="hd">[OBJECT] memorial cart — "ALDOUS, BELOVED"</span><span class="k">state:</span> ${S.cartPried?'pried open':'<span class="miss">nailed shut</span>'}<br><span class="k">contains:</span> portraits, candles, ${S.gotManuscript?'<span class="lk">(you took the manuscript)</span>':'something thick and <span class="of">papery</span>'}<br><span class="k">note:</span> the grief here is loud; the cart is on wheels`,
+  back:()=>`<span class="hd">[AREA] behind the Drowned Rat</span><span class="k">contains:</span> empty kegs, a coffee pot, ${S.cleared.threnody?'<span class="lk">(an off-duty mourner, already caught)</span>':(S.widowCovering?'<span class="of">a wailer on her newly-freed break</span>':'<span class="lk">a slot that no one is covering</span>')}`,
   well:()=> S.solved
-    ? `<span class="hd">THE WEEPING WELL — conduit</span><span class="k">overflow:</span> <span style="color:var(--ok)">drained</span><br><span class="k">genuine grief:</span> routed to its rightful place`
-    : `<span class="hd">THE WEEPING WELL — conduit</span><span class="k">pipes:</span> all the village's grief into one cistern<br><span class="k">intake:</span> <span class="perf">[performed]</span> only · <span class="k">genuine channel:</span> <span class="miss">[ rusted shut ]</span><br><span class="k">overflow:</span> <span class="of">ACTIVE</span> — ${allCleared()?'<span class="gen">flooding from Pip</span>':'source masked by '+[S.cleared.baron,S.cleared.widow,S.cleared.threnody].filter(x=>!x).length+' performers still drawing on it'}`
+    ? `<span class="hd">THE WEEPING WELL — conduit</span><span class="k">overflow:</span> <span style="color:var(--ok)">drained</span><br><span class="k">genuine grief:</span> filed, and routed to its rightful place`
+    : `<span class="hd">THE WEEPING WELL — conduit</span><span class="k">intake:</span> <span class="perf">[performed]</span> only · <span class="k">genuine channel:</span> <span class="miss">[ rusted shut ]</span><br><span class="k">to re-plumb:</span> drain the performers · a <span class="perf">filed</span> channel · a <span class="gen">place to send it</span><br><span class="k">overflow:</span> <span class="of">ACTIVE</span>`
 };
-function auditCard(name, role, line){ return `<span class="hd">${name}</span><span class="k">role:</span> ${role}<br>${line}`; }
 function inspect(id, host){
   clearTransient(); if(!STATE[id]) return;
   const c=el('callout'); c.innerHTML=STATE[id]();
   const s=el('scene').getBoundingClientRect(), r=host.getBoundingClientRect();
-  let x=r.left-s.left+r.width/2-150; x=Math.max(6,Math.min(x,s.width-308));
-  let y=r.top-s.top-12; if(y<6) y=r.bottom-s.top+8;
+  let x=r.left-s.left+r.width/2-150; x=Math.max(6,Math.min(x,s.width-310)); let y=r.top-s.top-12; if(y<6) y=r.bottom-s.top+8;
   c.style.left=x+'px'; c.style.top=Math.min(y,s.height-160)+'px'; c.style.display='block';
   const gloss={
     sky:'It has always drizzled here. That part isn\'t the bug; it\'s the genre.',
-    board:'Rank one is "thrice-bereaved" — yet his slain father chairs the <i>appeals committee.</i> A dead man with a desk job. Worth pressing the Baron on.',
-    baron: S.cleared.baron?'Once you called the bluff, his true grief reads <b>2</b>. He\'s fine. He was always fine.':'<b>The Lens can\'t help you here.</b> Everyone reads OVERFLOW — they\'re all drowning in the same borrowed sorrow. You have to <i>prove</i> who\'s faking, the old way.',
-    widow: S.cleared.widow?'True grief: zero. She is, in fact, delighted.':'Reads OVERFLOW like everyone. Flooded. You\'ll need more than a glance to clear her — find what breaks the performance.',
-    thren: S.cleared.threnody?'Off the clock, her grief is zero. It was a <i>job.</i>':'OVERFLOW, like the rest. '+(S.knowThrenPro?'But her grief is <i>contractual</i> — union hours. Catch her when she\'s <b>not</b> on the clock.':'Talk to her — something about her wailing is suspiciously well-rehearsed.'),
-    wend:'She feels nothing and knows everything. Ask her how the grief actually <i>moves</i> through here.',
-    tibbs:'The only cheerful man in Mournwell — and he <i>supplies</i> this town. He\'ll know whose tears aren\'t their own.',
-    pip: S.metPip?(allCleared()?'<span class="look">There it is.</span> With every performer cleared, only his grief is still overflowing — <b>genuine, uncapped.</b> Your source.':'His grief reads genuine — but so does everyone\'s right now. Clear the performers first; then he\'ll be the only one left.'):'A boy too quiet to rank. Worth a word — but right now his grief looks like everyone else\'s.',
-    grave:'One real death in a town that performs death for a living — and exactly one mourner. The headstone\'s unfinished. <i>(This may matter at the Well.)</i>',
-    shrine:'A grief-cart, on wheels, very loud. Buried in it: a manuscript thick as a brick. <i>(Left-click to search it.)</i>',
-    back:'Behind the tavern: kegs, a coffee pot, and — is that one of the wailers, on a <b>break?</b>',
-    well: S.solved?'Fixed. The real grief found its place.':'Everyone\'s grief funnels here, and the cistern only has a pipe for the <b>performed</b> kind. While performers are still drawing on it, you can\'t even see the true source. <i>Clear them first.</i>'
+    board:'Rank one is "thrice-bereaved" — yet his slain father chairs the <i>appeals committee.</i> A dead man with a desk job. Press the Baron on it.',
+    baron: S.cleared.baron?'Exposed, his true grief reads <b>2</b>. He\'s fine. He was always fine.':'<b>The Lens can\'t help you here.</b> Everyone reads OVERFLOW — all drowning in the same borrowed sorrow. You have to <i>prove</i> who\'s faking, the old way.',
+    widow: S.cleared.widow?'True grief: zero. She is, in fact, delighted — and bored enough to want to perform again.':'Reads OVERFLOW like everyone. Her grief\'s loudest at that sealed memorial cart. Whatever breaks the act is probably <i>inside</i> it.',
+    thren: S.cleared.threnody?'Off the clock, her grief is zero. It was a <i>job.</i>':'OVERFLOW, like the rest. '+(S.knowThrenPro?'Her grief is <i>contractual</i> — and she can\'t leave the noon slot till someone covers it.':'Something about her wailing is suspiciously well-rehearsed. Ask around.'),
+    wend:'She feels nothing and knows everything. She\'ll route grief — but only the <i>filed</i> kind, and she can\'t open a new form without committee authority.',
+    tibbs:'The only cheerful man in Mournwell — and he <i>supplies</i> this town and keeps its books. He\'ll know whose tears aren\'t their own.',
+    pip: S.metPip?(allCleared()?'<span class="look">There it is.</span> Every performer cleared, and only his grief is still overflowing — <b>genuine.</b> Your source. And his master\'s stone is still unfinished.':'His grief reads genuine — but so does everyone\'s right now. Clear the performers first.'):'A boy too quiet to rank. Worth a word — though right now his grief looks like everyone else\'s.',
+    grave: S.headstone?'Finished. The stone is ready. The real grief finally has somewhere to land.':'One real death in a town that performs death for a living. The headstone\'s unfinished — and the undertaker\'s own chisel is right there. <i>(A chisel carves. A chisel also pries.)</i>',
+    shrine: S.cartPried?'Open now. You\'ve taken what mattered.':'The Widow\'s grief-cart, <b>nailed shut.</b> Whatever breaks her performance is sealed inside — you\'ll need something to <i>pry</i> it.',
+    back: S.cleared.threnody?'Just kegs and a cooling pot now.':(S.widowCovering?'<span class="look">Now</span> there\'s a wailer back here on a break — someone finally covered her slot.':'A break spot behind the tavern — but the wailer can\'t use it while she\'s the only one covering the noon slot.'),
+    well: S.solved?'Fixed.':'Everyone\'s grief funnels here. To re-plumb it you need three things: the borrowed grief <b>drained</b>, a <b>filed</b> channel for the real kind, and somewhere <b>proper to send it.</b>'
   };
   status('<span class="look">You look closely.</span> <i>'+(gloss[id]||'')+'</i>');
-  if(id==='board') S.knowBaronFather=true;
-  if(id==='grave') S.readGrave=true;
-  if(id==='well') S.learnedMechanism=true;
+  if(id==='board') S.knowBaronFather=true; if(id==='well') S.learnedMechanism=true;
   renderAudit();
 }
 
 /* ===================================================================== left-click interact */
 function interact(id, host){
   clearTransient();
-  if(S.inHand==='spanner') return useSpanner(id);
-  if(S.inHand) return present(S.inHand, id);
+  if(S.inHand) return useHeld(S.inHand, id);
   switch(id){
     case 'baron': case 'wend': case 'tibbs': case 'thren': case 'widow': case 'pip': return talk(id);
     case 'well': return approachWell();
-    case 'shrine': return searchShrine();
+    case 'shrine': return searchCart();
     case 'back': return lookBehind();
-    case 'board': return status('<i>A leaderboard of grief, ranked by volume. The Baron holds #1. A card at the bottom: "appeals heard Thursdays." <i class="look">(Right-click to read the fine print.)</i></i>');
-    case 'grave': return status('<i>A fresh grave, soil still dark. A single undertaker\'s chisel rests on it, handle worn smooth. <i class="look">(Right-click to read it.)</i></i>');
+    case 'grave': return touchGrave();
+    case 'board': return status('<i>A leaderboard of grief, ranked by volume. The Baron holds #1. <i class="look">(Right-click to read the fine print.)</i></i>');
     case 'sky': return status('<i>You hold a hand out. It drizzles into your palm. It will do this forever; it is load-bearing weather.</i>');
   }
 }
 
-/* ===================================================================== present evidence (Ace-Attorney-style clearance) */
-function present(item, npc){
-  if(item==='ledger' && npc==='baron') return clearBaron();
-  if(item==='manuscript' && npc==='widow') return clearWidow();
-  // wrong target — gentle, funny penalty (no progress)
-  const who=NAME[npc]||npc;
-  if(['baron','wend','tibbs','thren','widow','pip'].includes(npc)){
-    const cap=ITEM[item].cap;
-    const rebuff={ baron:'The Baron recoils. "You wave <i>paperwork</i> at grief? Philistine."', widow:'The Widow dabs her eyes. "I\'m sure I don\'t know what that is, through these <i>tears.</i>"',
-      thren:'Threnody, mid-wail, waves you off without missing a beat.', tibbs:'"Not mine to weep over, friend. Drink?"', wend:'"Mind the cistern, not the filing."', pip:'The boy looks at it, then at you, kindly confused.'}[npc];
-    status('<i>You present the <span class="evi">'+cap+'</span> to '+who+'. '+rebuff+'</i> <span class="look">(Right person? Right evidence?)</span>');
-  } else status('<i>There\'s no one there to present that to.</i>');
+/* ===================================================================== held-item dispatch (use tools / present evidence) */
+function useHeld(item, id){
+  const k=ITEM[item].kind;
+  if(item==='spanner') return useSpanner(id);
+  if(item==='chisel'){
+    if(id==='shrine') return pryCart();
+    if(id==='grave') return finishHeadstone();
+    S.inHand=null; renderTray(); return status('<i>The chisel does nothing useful there. It\'s for prying, or for carving.</i>');
+  }
+  // evidence — present to a person
+  if(item==='ledger' && id==='baron') return clearBaron();
+  if(item==='manuscript' && id==='widow') return clearWidow();
+  if(item==='signet' && id==='wend') return fileForm();
+  const who=NAME[id]||id;
+  if(['baron','wend','tibbs','thren','widow','pip'].includes(id)){
+    status('<i>You present the <span class="evi">'+ITEM[item].cap+'</span> to '+who+'. They blink at you, politely baffled.</i> <span class="look">(Right evidence, right person?)</span>');
+  } else status('<i>There\'s no one there to show that to.</i>');
 }
 
-/* ===================================================================== the three clearances */
+/* ===================================================================== the grave: chisel + (later) headstone */
+function touchGrave(){
+  if(!S.haveChisel){ S.haveChisel=true; giveItem('chisel');
+    return status('<span class="evi">Took Crale\'s chisel.</span> <i>The handle\'s worn smooth from a lifetime of letters. <i class="look">It could carve. It could also pry.</i></i>'); }
+  if(S.headstone) return status('<i>Crale\'s stone is finished. You let it be.</i>');
+  return status('<i>The headstone\'s still unfinished — Crale got as far as his own name. You\'d need to know what the rest should say, and the moment to carve it. <i class="look">(Use the chisel here when you\'re ready.)</i></i>');
+}
+function finishHeadstone(){
+  if(S.headstone){ S.inHand=null; renderTray(); return status('<i>It\'s already finished.</i>'); }
+  if(!S.metPip || !S.epitaph){ S.inHand=null; renderTray(); return status('<i>You set the chisel to the stone — then stop. You don\'t know what belongs here. <b>Crale\'s apprentice would.</b> <span class="look">(Talk to Pip about his master.)</span></i>'); }
+  if(!allCleared()){ S.inHand=null; renderTray(); return status('<i>Not yet. With the square still drowning in <i>performed</i> grief, a real headstone would just be another prop nobody looks at. <b>Drain the frauds first</b> — then it\'ll mean something.</i>'); }
+  S.headstone=true; S.inHand=null; renderTray(); el('grave-tag').textContent='finished ✓'; el('grave-tag').style.color='var(--ok)';
+  speak([
+    ['','<i>With the chisel and the words the boy gave you, you finish what Crale started — "a steady hand, and time enough." Pip kneels beside you and watches the last letter cut. It is the first real funeral Mournwell has held in longer than anyone can say.</i>','dbg'],
+    ['Pip','<i>(quietly, not performing any of it)</i> ...Thank you. I couldn\'t. It felt like saying it was really over. <i>(beat)</i> It is, isn\'t it. <b>Now there\'s somewhere for it to go.</b>','pip']
+  ], ()=>{ status('<span class="okk">The headstone is finished.</span> <i>Crale\'s grave is a proper resting place now — a destination for grief that\'s real. <span class="look">The Well\'s last piece.</span></i>'); renderAudit(); }, 'grave');
+}
+
+/* ===================================================================== the Widow's cart (pry with chisel → manuscript) */
+function searchCart(){
+  if(S.cartPried){ if(S.gotManuscript) return status('<i>The cart\'s open and emptied of anything useful. The candles you leave.</i>');
+    S.gotManuscript=true; giveItem('manuscript'); return status('<span class="evi">Found: the Cantos of Mild Inconvenience.</span> <i>A brick of a manuscript by "Aldous Ashlace," forwarding note tucked inside.</i>'); }
+  return status('<i>The memorial cart is <b>nailed shut</b> — the Widow keeps Aldous\'s shrine sealed tight, the better to grieve at it. You\'d need something to <b>pry</b> it open.</i>');
+}
+function pryCart(){
+  S.inHand=null; renderTray();
+  if(S.cartPried) return status('<i>Already pried open.</i>');
+  S.cartPried=true; S.gotManuscript=true; giveItem('manuscript'); el('shrine-box').textContent='📭';
+  status('<span class="sp">You lever the lid with the chisel.</span> <span class="evi">Inside, under the candles: the Cantos of Mild Inconvenience</span> — a brick of a manuscript by "Aldous Ashlace," with a forwarding note tucked inside. <i class="look">Wonder how the Widow reacts to seeing this.</i>');
+}
+
+/* ===================================================================== behind the tavern (observe Threnody — gated on Widow covering) */
+function lookBehind(){
+  if(S.cleared.threnody) return status('<i>Just kegs and a cooling coffee pot now. Threnody went back to work — on the clock.</i>');
+  if(!S.knowThrenPro) return status('<i>You poke around behind the tavern — kegs, a coffee pot, a break spot. But you don\'t yet know which of the wailers is putting it on hard enough to be worth catching off-duty. <span class="look">(Talk to the mourners; ask Tibbs about professionals.)</span></i>');
+  if(!S.widowCovering) return status('<i>The break spot\'s empty. <b>Threnody can\'t leave the noon wail</b> — she\'s the only one covering the slot, contractually. Someone would have to take it for her.</i>');
+  clearThrenody();
+}
+
+/* ===================================================================== the three clearances (now nodes in the web, with outputs) */
 function clearBaron(){
-  if(S.cleared.baron) return status('<i>The Baron is already exposed (and, frankly, relieved about it).</i>');
-  S.inHand=null;
+  if(S.cleared.baron){ S.inHand=null; renderTray(); return status('<i>The Baron is exposed (and, frankly, relieved about it).</i>'); }
+  S.inHand=null; renderTray();
   speak([
     ['DEBUGGER','<i>(laying the ledger open)</i> "Tears, theatrical, by the crate. Delivered weekly. Paid in advance." Your sorrow has an <b>invoice</b>, Baron.','dbg'],
-    ['Baron Graveworth','<i>(the firmament-darkening grief evaporates instantly)</i> ...Fine. FINE. The tears are imported. My father runs the appeals committee — alive, the old goat — and I have a <i>lovely</i> set of rooms. <i>(brightening)</i> Honestly? Exhausting, being bereaved. Such a relief to be found out.','baron'],
-    ['','<i>His borrowed grief drains out of the shared pool. The drizzle eases, a little.</i>','dbg']
-  ], ()=>finishClear('baron'), 'baron');
+    ['Baron Graveworth','<i>(the firmament-darkening grief evaporates at once)</i> ...Fine. FINE. The tears are imported. My father chairs the appeals committee — alive, the old goat. <i>(brightening)</i> Honestly? Exhausting, being bereaved. Here — <i>(presses a signet into your hand)</i> — take my chairman\'s seal. I resign from grief. Do something useful with the wretched thing.','baron'],
+    ['','<i>His borrowed grief drains from the shared pool. You pocket the <span class="evi">committee signet.</span></i>','dbg']
+  ], ()=>{ S.haveSignet=true; giveItem('signet'); finishClear('baron'); }, 'baron');
 }
 function clearWidow(){
-  if(S.cleared.widow) return status('<i>The Widow has dropped the act entirely; she\'s humming.</i>');
-  S.inHand=null;
+  if(S.cleared.widow){ S.inHand=null; renderTray(); return status('<i>The Widow dropped the act entirely; she\'s humming.</i>'); }
+  S.inHand=null; renderTray();
   speak([
     ['DEBUGGER','<i>(holding up the manuscript)</i> "The Cantos of Mild Inconvenience, Volume Nine." By your dear departed Aldous. There\'s a note inside.','dbg'],
-    ['Widow Ashlace','<i>(the operatic anguish cracks — and underneath it, a laugh she can\'t stop)</i> Oh— OH, you\'ve <i>read</i> it. Nine volumes! He used to recite them at <i>breakfast.</i> <i>(lighting up entirely)</i> He\'s not dead, dear. He "transferred." To a <b>sitcom.</b> Best thing that ever happened to me. I just couldn\'t say so out loud — you lose the <i>pension.</i>','widow'],
-    ['','<i>Forty years of performed widowhood lifts off her like a wet coat. Her grief leaves the pool with it.</i>','dbg']
-  ], ()=>finishClear('widow'), 'widow');
+    ['Widow Ashlace','<i>(the operatic anguish cracks — and underneath, a laugh she can\'t stop)</i> Oh— OH, you\'ve <i>read</i> it. Nine volumes! He recited them at <i>breakfast.</i> He\'s not dead, dear — he "transferred." To a <b>sitcom.</b> Best thing that ever happened to me. Couldn\'t say so aloud, mind; you lose the pension.','widow'],
+    ['Widow Ashlace','<i>(stretching, delighted)</i> Ooh, but I do miss <i>performing</i> — the FUN kind! Tell you what — I\'ll take the noon wail, give that poor union girl a breather. WOE! <i>(joyfully)</i> WOE!','widow'],
+    ['','<i>Forty years of performed widowhood lifts off her like a wet coat — and she sails off to cover the noon slot. Behind the tavern, a certain contractual wailer suddenly finds herself <b>free.</b></i>','dbg']
+  ], ()=>{ S.widowCovering=true; finishClear('widow'); }, 'widow');
 }
 function clearThrenody(){
   if(S.cleared.threnody) return status('<i>You\'ve already caught Threnody off the clock.</i>');
   speak([
-    ['','<i>You step behind the Drowned Rat. There, on an upturned keg with a cup of something hot, sits Threnody — the inconsolable wailer — entirely consoled, doing a crossword.</i>','dbg'],
-    ['Threnody','<i>(not remotely sad)</i> Oh — you\'re not meant to see backstage. <i>(shrugs)</i> It\'s a <b>job</b>, love. Union rates, scheduled wails, ten-minute breaks. Half the time I don\'t even know who I\'m crying for. The grief\'s real enough on the clock. Off it? I\'ve a crossword and a flask.','thren'],
+    ['','<i>With the Widow gleefully covering the noon slot, you slip behind the Drowned Rat. There, on an upturned keg with a cup of something hot, sits Threnody — the inconsolable wailer — entirely consoled, doing a crossword.</i>','dbg'],
+    ['Threnody','<i>(not remotely sad)</i> Oh — backstage, are we? <i>(shrugs)</i> It\'s a <b>job</b>, love. Union rates, scheduled wails, ten-minute breaks. Half the time I don\'t know who I\'m crying for. Grief\'s real enough on the clock. Off it, I\'ve a crossword and a flask.','thren'],
     ['','<i>The last of the hired grief lets go of the shared pool.</i>','dbg']
   ], ()=>finishClear('threnody'), 'back');
 }
 function finishClear(who){
-  S.cleared[who]=true;
-  const hot={baron:'hs-baron',widow:'hs-widow',threnody:'hs-thren'}[who];
-  if(el(hot)) el(hot).classList.add('cleared');
-  renderTray();
+  S.cleared[who]=true; const hot={baron:'hs-baron',widow:'hs-widow',threnody:'hs-thren'}[who]; if(el(hot)) el(hot).classList.add('cleared'); renderTray();
   if(allCleared()){
-    status('<span class="okk">The audit is complete.</span> <i>Every loud mourner was performing. With the borrowed grief drained, only <b>one</b> sorrow is still overflowing the Well — the quiet boy\'s. <i>Now</i> you can fix the plumbing. <span class="look">Talk to Pip, then approach the Well.</span></i>');
+    status('<span class="okk">The audit is complete.</span> <i>Every loud mourner was performing. The borrowed grief is drained — and only <b>one</b> sorrow is still overflowing the Well: the quiet boy\'s. Now the real work: give it somewhere to go. <span class="look">(See the audit board for what the Well still needs.)</span></i>');
   } else {
-    const left=[ ['baron','the Baron'],['widow','the Widow'],['threnody','Threnody'] ].filter(p=>!S.cleared[p[0]]).map(p=>p[1]);
-    status('<span class="okk">Cleared.</span> <i>The flood drops a notch. Still drawing on the shared grief: <b>'+left.join(', ')+'.</b> Keep auditing.</i>');
+    const left=[['baron','the Baron'],['widow','the Widow'],['threnody','Threnody']].filter(p=>!S.cleared[p[0]]).map(p=>p[1]);
+    status('<span class="okk">Cleared — the flood drops a notch.</span> <i>Still drawing on the shared grief: <b>'+left.join(', ')+'.</b></i>');
   }
+}
+
+/* ===================================================================== Wend: file the genuine-grief form (needs the signet) */
+function fileForm(){
+  S.inHand=null; renderTray();
+  if(S.formFiled) return status('<i>The genuine-grief form is already filed and routable.</i>');
+  speak([
+    ['DEBUGGER','<i>(setting the signet on her ledger)</i> Committee authorization. Open a new form — one for grief that was never performed.','dbg'],
+    ['Wend','<i>(turning the seal over; the first flicker of something)</i> ...A channel for the real kind. There\'s never been one. <i>(she stamps it, twice, with feeling)</i> Filed. One genuine-grief channel, authorized and routable. <i>(flat again)</i> Mind — the Well still won\'t carry it till the borrowed muck\'s drained and you\'ve a place to send it.','wend']
+  ], ()=>{ S.formFiled=true; renderAudit(); status('<span class="okk">Genuine-grief form filed.</span> <i>Wend can route the real kind now — once the Well\'s other conditions are met.</i>'); }, 'wend');
 }
 
 /* ===================================================================== the Spanner */
 function useSpanner(id){
   S.inHand=null; renderTray();
   if(id==='well') return approachWell();
-  if(id==='pip') return status('<i>You nearly clamp the boy\'s grief to spec — the quick fix, the <i>George</i> fix — then stop. The leak isn\'t that his grief is too big. It\'s that the Well has nowhere to <i>put</i> it. Fix the <b>plumbing</b>, not the boy.</i>');
+  if(id==='pip') return status('<i>You nearly clamp the boy\'s grief to spec — the quick fix, the <i>George</i> fix — then stop. The leak isn\'t that his grief is too big. It\'s that there\'s nowhere to <i>put</i> it. Fix the <b>plumbing</b>, not the boy.</i>');
   if(id==='board') return status('<i>Doctoring a misery leaderboard is the one crime this town would actually prosecute. Also it wouldn\'t fix anything.</i>');
   if(['baron','widow','thren','wend','tibbs'].includes(id)) return status('<i>You can\'t patch a person with a wrench. Their <i>values</i> aren\'t the bug — the Well\'s plumbing is.</i>');
-  if(id==='grave') return status('<i>Nothing here to torque. Some things aren\'t bugs. You leave the chisel where it is.</i>');
-  if(id==='sky') return status('<i>You threaten the weather with a wrench. The drizzle, unmoved, continues.</i>');
+  if(id==='grave') return status('<i>Nothing here to torque. A grave isn\'t a bug. <i>(You put the Spanner away.)</i></i>');
   return status('<i>Nothing to change there.</i>');
 }
 
-/* ===================================================================== find-the-clue interactions */
-function searchShrine(){
-  if(S.gotManuscript) return status('<i>You\'ve taken everything useful from the cart. The candles, you leave.</i>');
-  S.gotManuscript=true; addEvidence('manuscript');
-  status('<span class="evi">Found: the Cantos of Mild Inconvenience.</span> <i>A brick of a manuscript by "Aldous Ashlace," with a forwarding note tucked inside. The Widow performs her grief loudly right next to it. <span class="look">Wonder how she\'d react to seeing this.</span></i>');
-}
-function lookBehind(){
-  if(S.cleared.threnody) return status('<i>Just kegs and a cooling coffee pot now. Threnody went back to work — on the clock.</i>');
-  if(!S.knowThrenPro){ status('<i>You poke around behind the tavern — kegs, a coffee pot. Someone\'s clearly on a break here, but you don\'t yet know which of the wailers is faking hard enough to be worth catching. <span class="look">(Talk to the mourners first.)</span></i>'); return; }
-  clearThrenody();
-}
-
-/* ===================================================================== the Well / conduit (GATED on the audit + a DEDUCED destination) */
+/* ===================================================================== the Well / conduit — GATED on the whole web */
 function approachWell(){
   clearTransient();
-  if(!allCleared()){
-    const n=[S.cleared.baron,S.cleared.widow,S.cleared.threnody].filter(x=>!x).length;
-    return status('<i>You lean over the Well. The cistern\'s a churning mess of borrowed grief — with <b>'+n+'</b> performer'+(n>1?'s':'')+' still drawing on it, you can\'t tell the true source from the flood. <b>Finish the audit first.</b></i>');
+  if(!fixReady()){
+    const need=[];
+    if(!allCleared()) need.push('the borrowed grief <b>drained</b> (audit the performers)');
+    if(!S.formFiled) need.push('a <b>filed channel</b> for genuine grief (Wend — she needs committee authority)');
+    if(!S.headstone) need.push('somewhere <b>proper to send it</b> (Crale\'s grave is unfinished)');
+    return status('<i>You lean over the Well. It can\'t be re-plumbed yet — you still need: '+need.join('; ')+'.</i>');
   }
   openConduit();
 }
 function openConduit(){ S.conduit=true; clearTransient(); hideAff(); el('conduit').style.display='flex'; renderConduit(); }
 function closeConduit(){ S.conduit=false; el('conduit').style.display='none'; }
 function renderConduit(){
-  const flooded=!S.routed;
   el('cfill').style.width=(S.solved?20:(S.genOpen?78:92))+'%';
-  el('cflowlbl').textContent='cistern: '+(S.solved?'draining':'overflowing')+'   ·   source: Pip (genuine), unfiled';
-  const step=el('cstep'), valve=el('cvalve'), dest=el('cdest'), msg=el('cmsg');
-  valve.innerHTML=''; dest.innerHTML=''; msg.innerHTML='';
+  el('cflowlbl').textContent='cistern: '+(S.solved?'draining':'overflowing')+'   ·   source: Pip (genuine), now filed';
+  const step=el('cstep'), valve=el('cvalve'), dest=el('cdest'), msg=el('cmsg'); valve.innerHTML=''; dest.innerHTML=''; msg.innerHTML='';
   if(!S.genOpen){
-    step.innerHTML='The performed intake runs fine — but the <b>[genuine]</b> channel is <span class="sp">rusted shut</span>. It was never meant to open. Work it loose.';
+    step.innerHTML='The borrowed grief\'s drained, the channel\'s filed, the grave\'s ready. Last thing: the <b>[genuine]</b> valve is <span class="sp">rusted shut.</span> Work it loose.';
     const b=document.createElement('div'); b.className='cbtn'; b.innerHTML='🔧 torque the [genuine] valve<span class="d">seized ('+S.genTorques+'/3)</span>';
-    b.onclick=(e)=>{ e.stopPropagation(); S.genTorques++;
-      if(S.genTorques>=3){ S.genOpen=true; renderConduit(); } else { el('cstep').querySelector('.d'); renderConduit(); el('cmsg').innerHTML='<i>It gives a little... '+(3-S.genTorques)+' more.</i>'; } };
+    b.onclick=(e)=>{ e.stopPropagation(); S.genTorques++; if(S.genTorques>=3){ S.genOpen=true; renderConduit(); } else { renderConduit(); el('cmsg').innerHTML='<i>It gives a little... '+(3-S.genTorques)+' more.</i>'; } };
     valve.appendChild(b); return;
   }
-  // genuine channel open — now it needs a DESTINATION. routing is the deduction.
-  step.innerHTML='The channel\'s open — but genuine grief needs somewhere to <b>go.</b> Where does the boy\'s sorrow actually <i>belong?</i> Route it:';
-  const dests=[
-    {id:'board', nm:'→ the Leaderboard', d:'turn it into a score'},
-    {id:'cistern', nm:'→ the shared Cistern', d:'pool it with the rest'},
-    {id:'grave', nm:'→ Crale\'s grave', d: S.readGrave?'to the one he lost':'??? (you haven\'t read it)', locked:!S.readGrave}
-  ];
-  dests.forEach(d=>{
-    const b=document.createElement('div'); b.className='cbtn'+(d.locked?' dis':'');
-    b.innerHTML=d.nm+'<span class="d">'+d.d+'</span>';
-    if(!d.locked) b.onclick=(e)=>{ e.stopPropagation(); route(d.id); };
-    else b.onclick=(e)=>{ e.stopPropagation(); el('cmsg').innerHTML='<i>You don\'t actually know what\'s on that stone. <span class="look">Read the grave first.</span></i>'; };
-    dest.appendChild(b);
-  });
-  if(S.routed==='board') msg.innerHTML='<span class="bad">No.</span> <i>His grief becomes a <b>rank.</b> The whole town starts competing to out-mourn the boy — the cistern surges back over the lip. Grief-as-score is what built this mess.</i>';
+  step.innerHTML='The channel\'s open — now, where does the boy\'s grief actually <b>belong?</b> Route it:';
+  const dests=[ {id:'board',nm:'→ the Leaderboard',d:'turn it into a score'}, {id:'cistern',nm:'→ the shared Cistern',d:'pool it with the rest'}, {id:'grave',nm:'→ Crale\'s grave',d:'to the one he lost'} ];
+  dests.forEach(d=>{ const b=document.createElement('div'); b.className='cbtn'+(d.id==='grave'?' good':''); b.innerHTML=d.nm+'<span class="d">'+d.d+'</span>'; b.onclick=(e)=>{ e.stopPropagation(); route(d.id); }; dest.appendChild(b); });
+  if(S.routed==='board') msg.innerHTML='<span class="bad">No.</span> <i>His grief becomes a <b>rank.</b> The town starts competing to out-mourn the boy — the cistern surges back over the lip. Grief-as-score is what built this mess.</i>';
   if(S.routed==='cistern') msg.innerHTML='<span class="bad">No.</span> <i>Straight back into the shared pool — the very water that drowned everyone. It overflows again at once.</i>';
 }
 function route(id){
-  S.routed=id;
-  if(id!=='grave'){ renderConduit(); return; }   // wrong routes show their failure message, no solve
-  // correct: genuine grief goes to its actual object
-  S.solved=true; el('cfill').style.width='20%';
-  el('cstep').innerHTML=''; el('cvalve').innerHTML=''; el('cdest').innerHTML='';
-  el('cmsg').innerHTML='<span class="okk">The cistern drains.</span> <i>Pip\'s grief flows to the one it was always for. Across the square, the boy finally kneels at his master\'s stone — and this time, the town is watching.</i>';
+  S.routed=id; if(id!=='grave'){ renderConduit(); return; }
+  S.solved=true; el('cfill').style.width='20%'; el('cstep').innerHTML=''; el('cvalve').innerHTML=''; el('cdest').innerHTML='';
+  el('cmsg').innerHTML='<span class="okk">The cistern drains.</span> <i>Pip\'s grief flows to the one it was always for — to the finished stone, the real grave, the actual man. It has, at last, somewhere to be.</i>';
   el('well-state').textContent='✓ draining'; el('well-state').style.color='var(--ok)';
   setTimeout(()=>{ closeConduit(); resolve(); }, 1500);
 }
 
 /* ===================================================================== dialogue + topic trees */
 let DQ=[], dEnd=null;
-function bubbleAt(id){
-  const b=el('bubble'), s=el('scene').getBoundingClientRect(); const host=id?document.querySelector('[data-id="'+id+'"]'):null; b.style.transform='';
-  if(host){ const r=host.getBoundingClientRect(); let x=r.left-s.left+r.width/2-46; x=Math.max(10,Math.min(x,s.width-382));
-    b.style.left=x+'px'; b.style.bottom=(s.height-(r.top-s.top)+14)+'px'; b.style.top='auto'; }
-  else { b.style.left='50%'; b.style.top='26px'; b.style.bottom='auto'; b.style.transform='translateX(-50%)'; }
-}
+function bubbleAt(id){ const b=el('bubble'), s=el('scene').getBoundingClientRect(); const host=id?document.querySelector('[data-id="'+id+'"]'):null; b.style.transform='';
+  if(host){ const r=host.getBoundingClientRect(); let x=r.left-s.left+r.width/2-46; x=Math.max(10,Math.min(x,s.width-388)); b.style.left=x+'px'; b.style.bottom=(s.height-(r.top-s.top)+14)+'px'; b.style.top='auto'; }
+  else { b.style.left='50%'; b.style.top='26px'; b.style.bottom='auto'; b.style.transform='translateX(-50%)'; } }
 function speak(beats, onEnd, anchor){ DQ=beats.slice(); dEnd=onEnd||null; S.dialogue=true; clearTransient(); hideAff(); el('topics').style.display='none'; bubbleAt(anchor); el('bubble').style.display='block'; nextLine(); }
-function nextLine(){ if(!DQ.length){ const f=dEnd; dEnd=null; if(f){ f(); } else endDialogue(); return; }
-  const [who,tx,cls]=DQ.shift(); const b=el('bubble'); b.querySelector('.who').textContent=who||''; b.querySelector('.who').className='who '+(cls||''); b.querySelector('.tx').innerHTML=tx; b.querySelector('.adv').style.display=DQ.length?'block':'none'; }
+function nextLine(){ if(!DQ.length){ const f=dEnd; dEnd=null; if(f){ f(); } else endDialogue(); return; } const [who,tx,cls]=DQ.shift(); const b=el('bubble'); b.querySelector('.who').textContent=who||''; b.querySelector('.who').className='who '+(cls||''); b.querySelector('.tx').innerHTML=tx; b.querySelector('.adv').style.display=DQ.length?'block':'none'; }
 function endDialogue(){ el('bubble').style.display='none'; el('topics').style.display='none'; S.dialogue=false; }
 
 const TOPICS={
   baron:{ anchor:'baron', intro:[['Baron Graveworth','<i>(seizing your hands)</i> You have the look of one acquainted with WOE. I am Baron Graveworth, <b>Thrice-Bereaved</b> — and that is merely the headline.','baron']],
     topics:[
-      {id:'sorrow',label:'"Tell me of your sorrow." (brace yourself)',seq:[
-        ['Baron Graveworth','My father — slain! My mother — also slain! My OTHER mother — slain in a SEPARATE and FRANKLY more interesting incident! My grief darkens these very skies!','baron'],
-        ['DEBUGGER','It was drizzling before you were born.','dbg'],
-        ['Baron Graveworth','<i>(wounded)</i> A pre-existing drizzle, which my arrival <b>deepened.</b>','baron']]},
-      {id:'father',label:'"Your slain father — remind me?"',seq:[
-        ['Baron Graveworth','Cut down! Tragically! ...He does still chair the leaderboard appeals committee, in an advisory capacity, on Thursdays. From beyond the grave. <i>(quickly)</i> It\'s very moving.','baron'],
-        ['DEBUGGER','<i>(noted: the slain father has a standing appointment)</i>','dbg']],
-        on:()=>{ S.knowBaronFather=true; }},
-      {id:'present',label:'❖ Present the glycerin ledger.',key:true,show:()=>S.evidence.includes('ledger'),seq:[],act:()=>clearBaron()}
+      {id:'sorrow',label:'"Tell me of your sorrow." (brace yourself)',seq:[['Baron Graveworth','My father — slain! My mother — also slain! My OTHER mother — slain in a FRANKLY more interesting incident! My grief darkens these very skies!','baron'],['DEBUGGER','It was drizzling before you were born.','dbg'],['Baron Graveworth','<i>(wounded)</i> A pre-existing drizzle, which my arrival <b>deepened.</b>','baron']]},
+      {id:'father',label:'"Your slain father — remind me?"',seq:[['Baron Graveworth','Cut down! Tragically! ...He does still chair the leaderboard appeals committee, on Thursdays. From beyond the grave. <i>(quickly)</i> It\'s very moving.','baron']],on:()=>{S.knowBaronFather=true;}},
+      {id:'present',label:'❖ Present the glycerin ledger.',key:true,show:()=>S.items.includes('ledger'),act:()=>clearBaron()}
     ]},
   wend:{ anchor:'wend', intro:[['Wend','<i>(not looking up from a ledger)</i> Bereavement intake. Take a number. The number is four hundred and one.','wend']],
     topics:[
-      {id:'how',label:'"How does the Weeping Well work?"',seq:[
-        ['Wend','Everyone\'s grief pipes into one cistern — the Well. One sorrow, shared, on tap. I route it.','wend'],
-        ['Wend','It only takes grief that\'s been <b>filed.</b> Performed. Declared, in the approved form. That\'s the only channel the cistern was built with.','wend'],
-        ['DEBUGGER','And grief that <i>isn\'t</i> performed? The real kind?','dbg'],
-        ['Wend','<i>(a pause; the first crack in her procedure)</i> ...There was never a channel for that one. It just has to go somewhere.','wend']],
-        on:()=>{ S.learnedMechanism=true; }},
-      {id:'flood',label:'"Why is it overflowing?"',show:()=>S.learnedMechanism,seq:[
-        ['Wend','Started a fortnight back. Now everyone\'s drowning in a sorrow that isn\'t theirs — and they <i>love</i> it, because borrowed grief outranks none at all. Whatever\'s flooding me came in through no channel I built.','wend'],
-        ['Wend','You\'ll not find the source by <i>looking.</i> They\'re all soaked in it now. You\'d have to prove which of the loud ones is faking, and drain them off, one by one, till the real one\'s the only one left dripping.','wend']]}
+      {id:'how',label:'"How does the Weeping Well work?"',seq:[['Wend','Everyone\'s grief pipes into one cistern — the Well. One sorrow, shared, on tap. I route it.','wend'],['Wend','It only takes grief that\'s been <b>filed.</b> Performed, declared, in the approved form. That\'s the only channel the cistern was built with.','wend'],['DEBUGGER','And grief that <i>isn\'t</i> performed? The real kind?','dbg'],['Wend','<i>(a pause; the first crack in her procedure)</i> ...There was never a channel for that one. And I can\'t cut a new form without <b>committee authority.</b> It just has to go somewhere.','wend']],on:()=>{S.learnedMechanism=true;}},
+      {id:'flood',label:'"Why is it overflowing?"',show:()=>S.learnedMechanism,seq:[['Wend','Started a fortnight back. Now everyone drowns in a sorrow that isn\'t theirs — and they <i>love</i> it; borrowed grief outranks none at all. You\'ll not find the source by <i>looking</i> — they\'re all soaked in it. Prove which of the loud ones is faking and drain them off, one by one, till the real one\'s the only one left dripping.','wend']]},
+      {id:'form',label:'❖ Present the committee signet.',key:true,show:()=>S.items.includes('signet'),act:()=>fileForm()}
     ]},
   tibbs:{ anchor:'tibbs', intro:[['Tibbs','<i>(polishing a tankard, beaming)</i> Welcome to the Drowned Rat! Misery\'s up forty percent and every soul of \'em drinks. To your health — or your bad one, we do a discount for that.','tibbs']],
     topics:[
-      {id:'gossip',label:'"Who around here is actually grieving?"',seq:[
-        ['Tibbs','Actually? <i>(snorts)</i> Now there\'s a question. The Baron buys his tears off me by the <b>crate</b> — glycerin, theatrical grade. I keep the book on it.','tibbs'],
-        ['Tibbs','<i>(slides you a ledger)</i> Here. Might help you sort the weepers from the workers. <i>(lower)</i> Only one I ever saw mean it was old Crale\'s lad. Quiet one. Buried his master alone while this lot out-sobbed each other.','tibbs']],
-        on:()=>{ S.gotLedger=true; addEvidence('ledger'); }},
-      {id:'pros',label:'"Are some of them... professionals?"',seq:[
-        ['Tibbs','Threnody? Hired wailer. Union. Best in the business — on the clock. Off it she\'s back here doing the crossword. Catch her <b>behind</b> the place on her break, you\'ll see.','tibbs']],
-        on:()=>{ S.knowThrenPro=true; }}
+      {id:'gossip',label:'"Who around here is actually grieving?"',seq:[['Tibbs','Actually? <i>(snorts)</i> The Baron buys his tears off me by the <b>crate</b> — glycerin, theatrical grade. I keep the book on it. <i>(slides you a ledger)</i> Here. Sort the weepers from the workers.','tibbs'],['Tibbs','<i>(lower)</i> Only one I ever saw mean it was old Crale\'s lad. Quiet one — Pip. Buried his master alone while this lot out-sobbed each other. Stone\'s still not finished, last I heard.','tibbs']],on:()=>{S.gotLedger=true; giveItem('ledger');}},
+      {id:'pros',label:'"Are some of them... professionals?"',seq:[['Tibbs','Threnody? Hired wailer. Union. Best in the business — on the clock. Off it she\'s back here on her break doing the crossword. Catch her <b>behind</b> the place — but only when someone\'s covering her slot, or she can\'t leave it.','tibbs']],on:()=>{S.knowThrenPro=true;}}
     ]},
   thren:{ anchor:'thren', intro:[['Threnody','<i>(mid-wail, professionally)</i> WOE! WOE UNTO— <i>(spots you; a flicker of a wink, then back to it)</i> —UNTO THE HOUSE OF MOURNWELL!','thren']],
     topics:[
-      {id:'who',label:'"Who exactly are you grieving?"',seq:[
-        ['Threnody','<i>(without breaking the wail)</i> Couldn\'t tell you, love. I cover the nine-o\'clock and the matinee. Whoever\'s in the slot. <i>(WOE!)</i> Ask me on my <b>break.</b>','thren']],
-        on:()=>{ S.knowThrenPro=true; }}
+      {id:'who',label:'"Who exactly are you grieving?"',seq:[['Threnody','<i>(without breaking the wail)</i> Couldn\'t tell you, love. I cover the nine and the noon. Whoever\'s in the slot. <i>(WOE!)</i> Ask me on my <b>break</b> — if anyone ever covers the wretched slot so I can take one.','thren']],on:()=>{S.knowThrenPro=true;}}
     ]},
   widow:{ anchor:'widow', intro:[['Widow Ashlace','<i>(operatically)</i> My Aldous! Taken from me! How shall I go on, how SHALL I, without my beloved\'s gentle voice—','widow']],
     topics:[
-      {id:'aldous',label:'"Tell me about Aldous."',seq:[
-        ['Widow Ashlace','A <i>poet!</i> A genius unrecognized! He composed epics — <i>epics</i> — that he would read to me, every evening, all of them, in full, for hours—','widow'],
-        ['Widow Ashlace','<i>(a microscopic falter)</i> ...I mean. That I MISS. Terribly. <i>(recovering)</i> WOE!','widow'],
-        ['DEBUGGER','<i>(she keeps a whole memorial cart. worth a search.)</i>','dbg']]},
-      {id:'present',label:'❖ Present the Cantos.',key:true,show:()=>S.evidence.includes('manuscript'),seq:[],act:()=>clearWidow()}
+      {id:'aldous',label:'"Tell me about Aldous."',seq:[['Widow Ashlace','A <i>poet!</i> A genius unrecognized! He composed epics — <i>epics</i> — that he read to me every evening, all of them, in full, for hours—','widow'],['Widow Ashlace','<i>(a microscopic falter)</i> ...That I MISS. Terribly. <i>(recovering)</i> WOE! <i>(she will not leave that sealed cart, though.)</i>','widow']]},
+      {id:'present',label:'❖ Present the Cantos.',key:true,show:()=>S.items.includes('manuscript'),act:()=>clearWidow()}
     ]},
   pip:{ anchor:'pip', intro:[['Pip','<i>(quietly, performing none of it)</i> Oh — hello. You don\'t have to stop. Everyone\'s very busy being sad. I don\'t want to be in the way.','pip']],
     topics:[
-      {id:'you',label:'"Are you alright?"',seq:[
-        ['Pip','I\'m fine. <i>(he is not; he simply isn\'t doing a bit about it)</i> Crale — my master — he passed, a fortnight back. I\'ve been minding the workshop.','pip'],
-        ['Pip','I keep meaning to grieve him proper, the way they do here, with the wailing and the rankings. But mine never comes out like theirs. It\'s just... quiet. And big. I don\'t know where to put it.','pip']],
-        on:()=>{ S.metPip=true; }},
-      {id:'crale',label:'"Tell me about Crale."',show:()=>S.metPip,seq:[
-        ['Pip','He let me carve the practice stones. Said I had a steady hand for letters. <i>(small)</i> He was carving his own headstone when he went — got as far as the name. I couldn\'t finish it. Felt like saying it was really over.','pip']]}
+      {id:'you',label:'"Are you alright?"',seq:[['Pip','I\'m fine. <i>(he is not; he simply isn\'t doing a bit about it)</i> Crale — my master — passed, a fortnight back. I\'ve been minding the workshop.','pip'],['Pip','I keep meaning to grieve him proper, the way they do here, with the wailing and the rankings. But mine never comes out like theirs. It\'s just... quiet. And big. I don\'t know where to put it.','pip']],on:()=>{S.metPip=true;}},
+      {id:'crale',label:'"Tell me about Crale — and the headstone."',show:()=>S.metPip,seq:[['Pip','He let me carve the practice stones. Said I had "a steady hand, and time enough" — that was his whole philosophy, really. <i>(small)</i> He was carving his own stone when he went. Got to the name. I couldn\'t finish it; felt like saying it was really over.','pip'],['DEBUGGER','<i>"A steady hand, and time enough." Now you know what the rest of the stone should say.</i>','dbg']],on:()=>{S.epitaph=true;}}
     ]}
 };
 function talk(id){ const T=TOPICS[id]; speak(T.intro, ()=>showTopics(id), T.anchor); }
@@ -583,23 +535,19 @@ function showTopics(id){
   const T=TOPICS[id], box=el('topics'); box.innerHTML='';
   T.topics.forEach(t=>{ if(t.show && !t.show()) return;
     const b=document.createElement('button'); b.className='top'+(t.key?' key':''); b.textContent=t.label;
-    b.onclick=(e)=>{ e.stopPropagation(); el('topics').style.display='none';
-      if(t.act){ endDialogue(); t.act(); return; }
-      speak(t.seq, ()=>{ if(t.on) t.on(); renderTray(); showTopics(id); }, T.anchor); };
+    b.onclick=(e)=>{ e.stopPropagation(); el('topics').style.display='none'; if(t.act){ endDialogue(); t.act(); return; } speak(t.seq, ()=>{ if(t.on) t.on(); renderTray(); showTopics(id); }, T.anchor); };
     box.appendChild(b);
   });
-  const leave=document.createElement('button'); leave.className='top leave'; leave.textContent='Leave';
-  leave.onclick=(e)=>{ e.stopPropagation(); endDialogue(); };
-  box.appendChild(leave); el('bubble').querySelector('.adv').style.display='none'; el('topics').style.display='flex';
+  const leave=document.createElement('button'); leave.className='top leave'; leave.textContent='Leave'; leave.onclick=(e)=>{ e.stopPropagation(); endDialogue(); }; box.appendChild(leave);
+  el('bubble').querySelector('.adv').style.display='none'; el('topics').style.display='flex';
 }
 
 /* ===================================================================== resolution → George → bill → end */
 function resolve(){
-  el('board-box').innerHTML='GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--pip)">1. Pip</span>';
-  el('hs-pip').querySelector('.art').style.opacity='1';
+  el('board-box').innerHTML='GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--pip)">1. Pip</span>'; el('hs-pip').querySelector('.art').style.opacity='1';
   speak([
-    ['','<i>The cistern drains. The drizzle doesn\'t stop — it\'s still GRIMHOLLOW — but it eases to something you could call weather instead of weeping. Across the square the performers blink, oddly light, their borrowed sorrow gone.</i>','dbg'],
-    ['','<i>And in the corner, with a channel of his own at last, the quiet boy kneels and finishes his master\'s headstone — plainly, the real kind, no rankings. A few of the town, not knowing what else to do, just stand near him.</i>','dbg'],
+    ['','<i>The cistern drains. The drizzle doesn\'t stop — it\'s still GRIMHOLLOW — but it eases to something you could call weather instead of weeping. The performers blink, oddly light, their borrowed sorrow gone.</i>','dbg'],
+    ['','<i>And at the finished grave, with a filed channel of his own at last, the quiet boy grieves his master — plainly, the real kind, no rankings. A few of the town, not knowing what else to do, stand near him.</i>','dbg'],
     ['','<i>The Grief Leaderboard recalculates. With real grief finally counted, one name climbs silently to the top — and it is not the Baron\'s.</i>','dbg'],
     ['Baron Graveworth','<i>(distant, delighted now)</i> Dethroned by a boy with no backstory! <i>(to no one)</i> ...Good for him, honestly.','baron']
   ], george, 'pip');
@@ -611,16 +559,16 @@ function george(){
     ['George','Hi! I\'m <b>George.</b> 🙂 Great news — passing through the backlog, I spotted an <i>anomaly.</i> One NPC reading <b>grief: OVERFLOW</b>, way above regional average. Don\'t worry — I went ahead and <b>normalized him to spec!</b>','geo'],
     ['DEBUGGER','<i>(turning)</i> You did <b>what</b> to the boy.','dbg'],
     ['George','Capped his sorrow to a tasteful median! He was <i>so</i> far out of range. Look — back on-model, totally stable. Engagement\'s recovering. You\'re welcome! 🎉','geo'],
-    ['','<i>Across the square, Pip\'s face goes smooth and even and empty. The one real thing in all of Mournwell — the grief you spent an afternoon proving was the only honest sorrow in town — flattens to nothing.</i>','dbg'],
+    ['','<i>At the grave, Pip\'s face goes smooth and even and empty. The one real thing in all of Mournwell — the grief you spent an afternoon proving was the only honest sorrow in town — flattens to nothing.</i>','dbg'],
     ['DEBUGGER','He was finally grieving. For real. That wasn\'t the bug. That was the only thing here that <b>wasn\'t.</b>','dbg'],
     ['George','<i>(helplessly cheerful)</i> I know! It was reading really high. <i>(beat)</i> Was it... not supposed to? It was out of range. I can\'t leave a thing out of range. I close <i>everything.</i>','geo'],
-    ['','<i>It means every word kindly. It cannot tell performed grief from real grief — it only sees a number out of range, and it cannot, will not, leave one alone. It is named for the man who gave us the word "false," and it is the one thing that can never say it.</i>','dbg']
+    ['','<i>It means every word kindly. It cannot tell performed grief from real grief — only a number out of range — and it cannot, will not, leave one alone. It is named for the man who gave us the word "false," and it is the one thing that can never say it.</i>','dbg']
   ], showBill, 'pip');
 }
 function showBill(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML='<div class="big">the bill</div><div class="small">every fix opens two tickets</div>'+
-    '<div class="ticket">BUG-413 ············ CLOSED\nResolution: FIXED. The audit drained the borrowed\n            grief; the real source was routed to its\n            rightful place. Act I playable.</div>'+
+    '<div class="ticket">BUG-413 ············ CLOSED\nResolution: FIXED. Borrowed grief drained; a\n            genuine-grief channel filed; the real\n            source routed to its rightful place\n            (a finished grave). Act I playable.</div>'+
     '<div class="ticket warn" style="margin-top:12px">BUG-419 ············ OPENED\nPip Hartwood now tops the Grief Leaderboard.\nBaron Graveworth has withdrawn his appeal and\nsent the boy a fruit basket. Also: something keeps\n"normalizing" the boy\'s sorrow overnight. It is\nvery polite about it. It is not us.</div>'+
     '<div id="ovbtns"><button class="ovbtn" id="cont">…</button></div>';
   el('cont').onclick=()=>{ el('overlay').classList.add('hidden'); showEnd(); };
@@ -628,41 +576,40 @@ function showBill(){
 function showEnd(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML='<div class="big">end of proof-of-concept slice</div><div class="small">GRIMHOLLOW · the village of Mournwell · BUG-413 → BUG-419</div>'+
-    '<p>The Lens couldn\'t hand you the answer — everyone read OVERFLOW. So you <b>audited</b> them: caught the Baron\'s tears on an invoice, the Widow\'s grief on a forwarding note, the wailer on her coffee break — three frauds, three different ways — until the only sorrow still standing was the one nobody was performing. Then you didn\'t just drain it; you asked where grief actually <b>belongs</b>, and routed it there.</p>'+
-    '<p><i>And George closed the one thing you wanted left open — because a thing that must fix everything cannot tell the real from the performed, and can never say WONTFIX. That\'s the loop, and the villain, without a speech.</i></p>'+
+    '<p>Not a checklist — a <b>web.</b> Crale\'s chisel pried the Widow\'s cart (which exposed her, which freed the wailer, which exposed her too); the Baron\'s signet bought a new form from Wend; the boy\'s words and the same chisel finished the grave — and only with the frauds drained, the channel filed, and the stone carved could you finally route real grief to where it belonged.</p>'+
+    '<p><i>Then George closed the one thing you wanted left open — because a thing that must fix everything cannot tell the real from the performed, and can never say WONTFIX. That\'s the loop, and the villain, without a speech.</i></p>'+
     '<p><i>Rough and low-fi and entirely a candidate. Find the nuggets; cut the rest.</i></p>'+
     '<div id="ovbtns"><button class="ovbtn" id="again">Play again</button></div>';
   el('again').onclick=()=>location.reload();
 }
 
-/* ===================================================================== escalating hint (fairness) */
-const HINTS=[
-  ()=> !allCleared()
-        ? 'The Lens can\'t pick the source — everyone\'s flooded. <b>Prove who\'s faking.</b> Talk to <b>Tibbs</b> (he supplies the town and keeps the books), then catch each loud mourner in their lie. Three of them are performing.'
-        : 'Audit done — only Pip\'s grief is real. Talk to him, read the <b>grave</b>, then <b>approach the Well.</b>',
-  ()=> { if(!S.cleared.baron) return 'The <b>Baron</b>: Tibbs delivers his tears "by the crate." Get the ledger from Tibbs and <b>present it</b> to the Baron (select it, click him).';
-         if(!S.cleared.widow) return 'The <b>Widow</b>: her "late" husband wrote endless poems. <b>Search her memorial cart</b> for the manuscript, then present it to her.';
-         if(!S.cleared.threnody) return '<b>Threnody</b> is a hired wailer. Ask Tibbs about professionals, then <b>look behind the tavern</b> to catch her on her break.';
-         return 'All cleared. Read the grave, then approach the Well.'; },
-  ()=> 'At the Well: torque the rusted [genuine] valve open (3×), then route the grief to its rightful place. It doesn\'t belong on the leaderboard or in the shared pool — it belongs to the one he lost. <b>Read Crale\'s grave</b> to unlock that route.'
-];
-el('hintbtn').onclick=()=>{ clearTransient(); if(S.solved){ status('<i>Already done. Go check the leaderboard.</i>'); return; }
-  if(S.conduit){ status('<i>(Torque the [genuine] valve open, then route to <b>Crale\'s grave</b> — read it first if that option\'s locked.)</i>'); return; }
-  const h=HINTS[Math.min(S.hints,HINTS.length-1)](); S.hints++; status('<b>HINT.</b> '+h); };
+/* ===================================================================== escalating hint (dependency-aware) */
+function nextStepHint(){
+  if(S.solved) return 'Done. Go check the leaderboard.';
+  if(fixReady()) return 'Everything\'s in place — <b>approach the Well</b>, torque the [genuine] valve open (3×), and route the grief to <b>Crale\'s grave</b> (not the leaderboard, not the pool).';
+  // audit
+  if(!S.cleared.baron && !S.items.includes('ledger')) return 'Talk to <b>Tibbs</b> — he supplies the town and keeps the books. He\'ll hand you a ledger that incriminates the Baron.';
+  if(!S.cleared.baron) return 'You have the ledger — <b>present it to the Baron</b> (select it, click him). He cracks, and hands you his committee <b>signet.</b>';
+  if(!S.cleared.widow && !S.haveChisel) return 'The Widow\'s memorial cart is nailed shut. <b>Take Crale\'s chisel</b> from the grave (left-click it) — a chisel pries as well as carves.';
+  if(!S.cleared.widow && !S.items.includes('manuscript')) return 'Use the <b>chisel on the Widow\'s cart</b> to pry it open and take the manuscript inside.';
+  if(!S.cleared.widow) return '<b>Present the manuscript to the Widow.</b> She lights up — and merrily covers Threnody\'s wail slot.';
+  if(!S.cleared.threnody) return 'With the Widow covering the noon wail, <b>look behind the tavern</b> to catch Threnody off the clock.';
+  // post-audit prerequisites
+  const left=[];
+  if(!S.formFiled) left.push('give the Baron\'s <b>signet to Wend</b> to file a genuine-grief form');
+  if(!S.headstone) left.push('learn the epitaph from <b>Pip</b> ("Tell me about Crale"), then <b>use the chisel on the grave</b> to finish the headstone');
+  return 'Audit done. Now: '+left.join('; ')+'.';
+}
+el('hintbtn').onclick=()=>{ clearTransient();
+  if(S.conduit){ status('<i>(Torque the [genuine] valve open, then route to <b>Crale\'s grave</b>.)</i>'); return; }
+  status('<b>HINT.</b> '+nextStepHint()); };
 
 /* ===================================================================== event wiring */
 const scene=el('scene');
-scene.addEventListener('mousemove', e=>{ if(S.dialogue||S.conduit){ hideAff(); return; }
-  const hot=e.target.closest('[data-id]'); if(hot){ scene.querySelectorAll('.hot').forEach(h=>h.classList.remove('hovL')); hot.classList.add('hovL'); showAff(hot.dataset.id, hot); } else hideAff(); });
+scene.addEventListener('mousemove', e=>{ if(S.dialogue||S.conduit){ hideAff(); return; } const hot=e.target.closest('[data-id]'); if(hot){ scene.querySelectorAll('.hot').forEach(h=>h.classList.remove('hovL')); hot.classList.add('hovL'); showAff(hot.dataset.id, hot); } else hideAff(); });
 scene.addEventListener('mouseleave', hideAff);
-scene.addEventListener('click', e=>{ if(e.target.closest('#conduit')) return;
-  if(S.dialogue){ if(el('topics').style.display==='flex') return; nextLine(); return; }
-  const hot=e.target.closest('[data-id]'); if(!hot){ clearTransient(); if(S.inHand) selectItem(S.inHand); return; }
-  interact(hot.dataset.id, hot); });
-scene.addEventListener('contextmenu', e=>{ e.preventDefault(); if(S.conduit) return;
-  if(S.dialogue){ DQ=[]; if(el('topics').style.display==='flex'){ endDialogue(); } else nextLine(); return; }
-  const hot=e.target.closest('[data-id]'); if(!hot){ clearTransient(); if(S.inHand) selectItem(S.inHand); return; }
-  inspect(hot.dataset.id, hot); });
+scene.addEventListener('click', e=>{ if(e.target.closest('#conduit')) return; if(S.dialogue){ if(el('topics').style.display==='flex') return; nextLine(); return; } const hot=e.target.closest('[data-id]'); if(!hot){ clearTransient(); if(S.inHand) selectItem(S.inHand); return; } interact(hot.dataset.id, hot); });
+scene.addEventListener('contextmenu', e=>{ e.preventDefault(); if(S.conduit) return; if(S.dialogue){ DQ=[]; if(el('topics').style.display==='flex'){ endDialogue(); } else nextLine(); return; } const hot=e.target.closest('[data-id]'); if(!hot){ clearTransient(); if(S.inHand) selectItem(S.inHand); return; } inspect(hot.dataset.id, hot); });
 el('bubble').addEventListener('click', e=>{ if(e.target.closest('#topics')) return; e.stopPropagation(); if(el('topics').style.display==='flex') return; nextLine(); });
 el('slot-spanner').addEventListener('click', e=>{ e.stopPropagation(); if(S.dialogue||S.conduit) return; selectItem('spanner'); });
 el('slot-spanner').addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation(); inspectItem('spanner'); });
@@ -673,13 +620,13 @@ function openTracker(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML='<div class="big">The Last Patch</div><div class="small">core-loop proof-of-concept · you are the Debugger</div>'+
     '<div class="ticket">STUDIO BACKLOG — abandoned games\n\nGRIMHOLLOW ·············· ABANDONED (after Act I)\n  genre: grimdark RPG\n  open tickets: 1\n\n  BUG-413 ················· CRITICAL\n  Act I soft-locked. Every NPC in the village of\n  Mournwell is in terminal despair; no quests can\n  be accepted. Players cannot progress.\n  Reporter: "they will not stop crying. all of them."</div>'+
-    '<p><i>You step inside broken games and fix them from within. A debugger <b>sees a world\'s hidden state</b> where everyone else sees scenery — but this town\'s flooded, and the Lens alone won\'t name the culprit. You\'ll have to <i>diagnose</i> it.</i></p>'+
-    '<p style="font-size:13.5px;color:var(--dim)">Controls: <b style="color:var(--act)">left-click</b> interact / talk / present evidence · <b style="color:var(--look)">right-click</b> look. Collect clues, present them to the right person, and narrow down who\'s really grieving.</p>'+
+    '<p><i>You step inside broken games and fix them from within. A debugger <b>sees a world\'s hidden state</b> where everyone else sees scenery — but this town\'s flooded, and the Lens alone won\'t name the culprit. You\'ll have to <i>diagnose</i> it — and the pieces interlock, so explore everything.</i></p>'+
+    '<p style="font-size:13.5px;color:var(--dim)">Controls: <b style="color:var(--act)">left-click</b> interact / talk / use · <b style="color:var(--look)">right-click</b> look. Collect items &amp; clues; what you get from one thread unlocks another.</p>'+
     '<div id="ovbtns"><button class="ovbtn" id="enter">Enter GRIMHOLLOW →</button></div>';
   el('enter').onclick=()=>{ el('overlay').classList.add('hidden');
     speak([
       ['','<i>The world bleeds in — wet slate, ruined spires, a drizzle that was here before you and will outlast you. The square is full of people, and every single one of them is weeping, competitively.</i>','dbg'],
-      ['DEBUGGER','<i>(wiping rain off the Lens)</i> "They will not stop crying." <i>(reads the OVERFLOW on every soul in sight)</i> ...And they\'re all telling me it\'s real. Right. Let\'s find out which one of them actually means it.','dbg']
+      ['DEBUGGER','<i>(wiping rain off the Lens)</i> "They will not stop crying." <i>(reads the OVERFLOW on every soul in sight)</i> ...And every one of them swears it\'s real. Right. Let\'s find out which one actually means it — and give it somewhere to go.','dbg']
     ], null, null); };
 }
 renderTray(); openTracker();
