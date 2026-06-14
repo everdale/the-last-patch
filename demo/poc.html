@@ -28,7 +28,7 @@
     Tibbs ─► LEDGER ─► expose BARON ─► SIGNET ─► Wend files GENUINE-GRIEF FORM
     all frauds drained + form filed + headstone finished ─► WELL ─► route grief home
 
-  George (the Fixer, after George Boole) still normalizes Pip at the end.
+  Boole (the Fixer, named for George Boole) still normalizes Pip at the end.
   Input: LEFT-CLICK interact/talk/use, RIGHT-CLICK look. CANDIDATE, always.
 -->
 <html lang="en">
@@ -223,13 +223,13 @@ const fixReady=()=>allCleared()&&S.formFiled&&S.headstone;
 
 /* the live BUG-413 sub-tickets — show() = discovered; done() = resolved */
 const SUBS=[
-  {id:'413.1', text:"Graveworth's grief is theatrical (glycerin).", show:()=>S.knowBaronFraud, done:()=>S.cleared.baron},
-  {id:'413.2', text:"Ashlace is performing her widowhood.", show:()=>S.knowWidowFraud, done:()=>S.cleared.widow},
-  {id:'413.3', text:"Threnody's grief is contractual.", show:()=>S.knowThrenPro, done:()=>S.cleared.threnody},
-  {id:'413.4', text:"Town clock stuck — no one can clock out.", show:()=>S.knowClock, done:()=>S.clockFixed},
-  {id:'413.5', text:"Well has no channel for genuine grief.", show:()=>S.learnedMechanism, done:()=>S.formFiled},
-  {id:'413.6', text:"Crale's headstone unfinished — nowhere to route real grief.", show:()=>S.knowGrave, done:()=>S.headstone},
-  {id:'413.7', text:"Overflow source: UNIDENTIFIED.", show:()=>true, done:()=>allCleared(), doneText:"Overflow source: Pip (genuine)."}
+  {id:'413.1', text:"Graveworth's tears come by the crate.", show:()=>S.knowBaronFraud, done:()=>S.cleared.baron},
+  {id:'413.2', text:"The Widow protests rather too much.", show:()=>S.knowWidowFraud, done:()=>S.cleared.widow},
+  {id:'413.3', text:"Threnody wails to a schedule.", show:()=>S.knowThrenPro, done:()=>S.cleared.threnody},
+  {id:'413.4', text:"The town clock has stopped.", show:()=>S.knowClock, done:()=>S.clockFixed},
+  {id:'413.5', text:"The Well only carries 'filed' grief.", show:()=>S.learnedMechanism, done:()=>S.formFiled},
+  {id:'413.6', text:"Crale's headstone was never finished.", show:()=>S.knowGrave, done:()=>S.headstone},
+  {id:'413.7', text:"Something is overflowing the Well; source unknown.", show:()=>true, done:()=>allCleared(), doneText:"The overflow's source: Pip's, all along."}
 ];
 
 /* ===================================================================== ui helpers */
@@ -321,16 +321,16 @@ function inspect(id, host){
   const gloss={
     sky:'It has always drizzled here. That part isn\'t the bug; it\'s the genre.',
     board:'Rank one is "thrice-bereaved" — yet his slain father chairs the <i>appeals committee.</i> A dead man with a desk job. Press the Baron on it.',
-    clock: S.clockFixed?'Five o\'clock, near enough. For the first time in memory, this town has a quitting time.':'Frozen at noon since forever — so it\'s <b>never</b> quitting time, and no one on a shift can ever clock off. The mechanism\'s behind a seized panel.',
+    clock: S.clockFixed?'Five o\'clock, near enough — the first time the hands have moved in living memory.':'Stopped dead at noon, and stopped a long time ago. The mechanism\'s behind a seized panel.',
     baron: S.cleared.baron?'Exposed, his true grief reads <b>2</b>. He\'s fine. He was always fine.':'<b>The Lens can\'t help you here.</b> Everyone reads OVERFLOW — all drowning in the same borrowed sorrow. You have to <i>prove</i> who\'s faking, the old way.',
     widow: S.cleared.widow?'True grief: zero. She is, in fact, delighted.':'Reads OVERFLOW like everyone. Her grief\'s loudest at that sealed memorial cart. Whatever breaks the act is probably <i>inside</i> it.',
-    thren: S.cleared.threnody?'Off the clock, her grief is zero. It was a <i>job.</i>':'OVERFLOW, like the rest. '+(S.knowThrenPro?'Her grief is <i>contractual</i> — and she can\'t leave the slot until it\'s quitting time. Which, with the clock stuck, it never is.':'Something about her wailing is suspiciously well-rehearsed. Ask around.'),
+    thren: S.cleared.threnody?'Off the clock, her grief is zero. It was a <i>job.</i>':'OVERFLOW, like the rest. '+(S.knowThrenPro?'Her grief is <i>contractual</i> — she only stops at quitting time, and quitting time never seems to come.':'Something about her wailing is suspiciously well-rehearsed. Ask around.'),
     wend:'She feels nothing and knows everything. She\'ll route grief — but only the <i>filed</i> kind, and she can\'t open a new form without committee authority.',
     tibbs:'The only cheerful man in Mournwell — and he <i>supplies</i> this town and keeps its books. He\'ll know whose tears aren\'t their own.',
     pip: S.metPip?(allCleared()?'<span class="look">There it is.</span> Every performer cleared, and only his grief is still overflowing — <b>genuine.</b> Your source. And his master\'s stone is still unfinished.':'His grief reads genuine — but so does everyone\'s right now. Clear the performers first.'):'A boy too quiet to rank. Worth a word — though right now his grief looks like everyone else\'s.',
     grave: S.headstone?'Finished. The stone is ready. The real grief finally has somewhere to land.':'One real death in a town that performs death for a living. The headstone\'s unfinished — and the undertaker\'s own chisel is right there. <i>(A chisel carves. A chisel also pries.)</i>',
     shrine: S.cartPried?'Open now. You\'ve taken what mattered.':'The Widow\'s grief-cart, <b>nailed shut.</b> Whatever breaks her performance is sealed inside — you\'ll need something to <i>pry</i> it.',
-    back: S.cleared.threnody?'Just kegs and a cooling pot now.':(S.clockFixed?'<span class="look">Now</span> there\'s a wailer back here, newly off the clock — the bell finally rang five.':'A break spot behind the tavern — useless while it\'s never quitting time. Fix the clock and someone will turn up.'),
+    back: S.cleared.threnody?'Just kegs and a cooling pot now.':(S.clockFixed?'<span class="look">Now</span> there\'s a wailer back here, newly off the clock — the bell finally rang.':'A break spot behind the tavern, unused — nobody here ever seems to reach quitting time.'),
     well: S.solved?'Fixed.':'Everyone\'s grief funnels here. To re-plumb it you need three things: the borrowed grief <b>drained</b>, a <b>filed</b> channel for the real kind, and somewhere <b>proper to send it.</b>'
   };
   status('<span class="look">You look closely.</span> <i>'+(gloss[id]||'')+'</i>');
@@ -353,7 +353,7 @@ function interact(id, host){
     case 'back': return lookBehind();
     case 'grave': return touchGrave();
     case 'clock': S.knowClock=true; renderTickets();
-      return status('<i>The town clock, frozen at noon — and by the look of the verdigris, frozen a very long time. So it\'s <b>never</b> quitting time in Mournwell; no shift ever ends. The mechanism\'s behind a <b>seized panel</b>. <i class="look">(You\'d need to pry it, then something to turn the works.)</i></i>');
+      return status('<i>The town clock, stopped dead at noon — and by the verdigris on the hands, stopped a very long time ago. The mechanism\'s behind a <b>seized panel</b>. <i class="look">(You\'d need to pry it open, then something to turn the works.)</i></i>');
     case 'board': return status('<i>A leaderboard of grief, ranked by volume. The Baron holds #1. <i class="look">(Right-click to read the fine print.)</i></i>');
     case 'sky': return status('<i>You hold a hand out. It drizzles into your palm. It will do this forever; it is load-bearing weather.</i>');
   }
@@ -432,7 +432,7 @@ function fixClock(){
 function lookBehind(){
   if(S.cleared.threnody) return status('<i>Just kegs and a cooling coffee pot now. Threnody went back to work — on the clock.</i>');
   if(!S.knowThrenPro) return status('<i>You poke around behind the tavern — kegs, a coffee pot, a break spot. But you don\'t yet know which of the wailers is putting it on hard enough to be worth catching off-duty. <span class="look">(Talk to the mourners; ask Tibbs about professionals.)</span></i>');
-  if(!S.clockFixed) return status('<i>The break spot\'s empty. <b>Threnody can\'t clock out</b> — the town clock\'s stuck at noon, so the wail-shift never ends. <span class="look">Get the clock to quitting time and she\'ll finally turn up here.</span></i>');
+  if(!S.clockFixed) return status('<i>The break spot\'s empty. Threnody\'s still wailing out front — she\'ll not stop till her shift ends, and her shift never seems to end. <span class="look">When does a wailer round here ever get to clock off?</span></i>');
   clearThrenody();
 }
 
@@ -484,7 +484,7 @@ function useSpanner(id){
   if(id==='clock') return fixClock();
   S.inHand=null; renderTray();
   if(id==='well') return approachWell();
-  if(id==='pip') return status('<i>You nearly clamp the boy\'s grief to spec — the quick fix, the <i>George</i> fix — then stop. The leak isn\'t that his grief is too big. It\'s that there\'s nowhere to <i>put</i> it. Fix the <b>plumbing</b>, not the boy.</i>');
+  if(id==='pip') return status('<i>You nearly clamp the boy\'s grief to spec — the quick fix, the <i>Boole</i> fix — then stop. The leak isn\'t that his grief is too big. It\'s that there\'s nowhere to <i>put</i> it. Fix the <b>plumbing</b>, not the boy.</i>');
   if(id==='board') return status('<i>Doctoring a misery leaderboard is the one crime this town would actually prosecute. Also it wouldn\'t fix anything.</i>');
   if(['baron','widow','thren','wend','tibbs'].includes(id)) return status('<i>You can\'t patch a person with a wrench. Their <i>values</i> aren\'t the bug.</i>');
   if(id==='grave') return status('<i>Nothing here to torque. A grave isn\'t a bug. <i>(You put the Spanner away.)</i></i>');
@@ -541,28 +541,25 @@ const TOPICS={
   baron:{ anchor:'baron', intro:[['Baron Graveworth','<i>(seizing your hands)</i> You have the look of one acquainted with WOE. I am Baron Graveworth, <b>Thrice-Bereaved</b> — and that is merely the headline.','baron']],
     topics:[
       {id:'sorrow',label:'"Tell me of your sorrow." (brace yourself)',seq:[['Baron Graveworth','My father — slain! My mother — also slain! My OTHER mother — slain in a FRANKLY more interesting incident! My grief darkens these very skies!','baron'],['DEBUGGER','It was drizzling before you were born.','dbg'],['Baron Graveworth','<i>(wounded)</i> A pre-existing drizzle, which my arrival <b>deepened.</b>','baron']]},
-      {id:'father',label:'"Your slain father — remind me?"',seq:[['Baron Graveworth','Cut down! Tragically! ...He does still chair the leaderboard appeals committee, on Thursdays. From beyond the grave. <i>(quickly)</i> It\'s very moving.','baron']],on:()=>{S.knowBaronFraud=true;}},
-      {id:'present',label:'❖ Present the glycerin ledger.',key:true,show:()=>S.items.includes('ledger'),act:()=>clearBaron()}
+      {id:'father',label:'"Your slain father — remind me?"',seq:[['Baron Graveworth','Cut down! Tragically! ...He does still chair the leaderboard appeals committee, on Thursdays. From beyond the grave. <i>(quickly)</i> It\'s very moving.','baron']],on:()=>{S.knowBaronFraud=true;}}
     ]},
   wend:{ anchor:'wend', intro:[['Wend','<i>(not looking up from a ledger)</i> Bereavement intake. Take a number. The number is four hundred and one.','wend']],
     topics:[
       {id:'how',label:'"How does the Weeping Well work?"',seq:[['Wend','Everyone\'s grief pipes into one cistern — the Well. One sorrow, shared, on tap. I route it.','wend'],['Wend','It only takes grief that\'s been <b>filed.</b> Performed, declared, in the approved form. That\'s the only channel the cistern was built with.','wend'],['DEBUGGER','And grief that <i>isn\'t</i> performed? The real kind?','dbg'],['Wend','<i>(a pause; the first crack in her procedure)</i> ...There was never a channel for that one. And I can\'t cut a new form without <b>committee authority.</b> It just has to go somewhere.','wend']],on:()=>{S.learnedMechanism=true;}},
-      {id:'flood',label:'"Why is it overflowing?"',show:()=>S.learnedMechanism,seq:[['Wend','Started a fortnight back. Now everyone drowns in a sorrow that isn\'t theirs — and they <i>love</i> it; borrowed grief outranks none at all. You\'ll not find the source by <i>looking</i> — they\'re all soaked in it. Prove which of the loud ones is faking and drain them off, one by one, till the real one\'s the only one left dripping.','wend']]},
-      {id:'form',label:'❖ Present the committee signet.',key:true,show:()=>S.items.includes('signet'),act:()=>fileForm()}
+      {id:'flood',label:'"Why is it overflowing?"',show:()=>S.learnedMechanism,seq:[['Wend','Started a fortnight back. Now everyone drowns in a sorrow that isn\'t theirs — and they <i>love</i> it; borrowed grief outranks none at all. You\'ll not find the source by <i>looking</i> — they\'re all soaked in it. Prove which of the loud ones is faking and drain them off, one by one, till the real one\'s the only one left dripping.','wend']]}
     ]},
   tibbs:{ anchor:'tibbs', intro:[['Tibbs','<i>(polishing a tankard, beaming)</i> Welcome to the Drowned Rat! Misery\'s up forty percent and every soul of \'em drinks. To your health — or your bad one, we do a discount for that.','tibbs']],
     topics:[
-      {id:'gossip',label:'"Who around here is actually grieving?"',seq:[['Tibbs','Actually? <i>(snorts)</i> The Baron buys his tears off me by the <b>crate</b> — glycerin, theatrical grade. I keep the book on it. <i>(slides you a ledger)</i> Here. Sort the weepers from the workers.','tibbs'],['Tibbs','<i>(lower)</i> Only one I ever saw mean it was old Crale\'s lad. Quiet one — Pip. Buried his master alone while this lot out-sobbed each other. Stone\'s still not finished, last I heard.','tibbs']],on:()=>{ giveItem('ledger'); S.knowBaronFraud=true; S.knowGrave=true; }},
-      {id:'pros',label:'"Are some of them... professionals?"',seq:[['Tibbs','Threnody? Hired wailer. Union. Best in the business — on the clock. Off it she\'s back here on her break doing the crossword. Catch her <b>behind</b> the place — soon as it\'s quitting time. Which it never is, mind. That clock\'s been stuck since the Old King\'s day.','tibbs']],on:()=>{S.knowThrenPro=true;}}
+      {id:'gossip',label:'"Who around here is actually grieving?"',seq:[['Tibbs','<i>(snorts)</i> Actually? In <i>this</i> town? The Baron buys his tears off me by the <b>crate</b> — glycerin, theatrical grade. I keep the book on it. <i>(slides you a ledger)</i> Here — sort the weepers from the workers.','tibbs'],['Tibbs','<i>(beaming)</i> Don\'t go showing that round, mind. Half my regulars\'d lose their <i>ranking</i>, and a man\'s got to drink to <i>something.</i>','tibbs']],on:()=>{ giveItem('ledger'); S.knowBaronFraud=true; }},
+      {id:'pros',label:'"Are some of them... professionals?"',seq:[['Tibbs','Threnody? Hired wailer, best in the business — <i>on the clock.</i> Off it she\'s back here doing the crossword. Catch her on her <b>break</b>, behind the place. <i>(chuckles)</i> If she ever gets one — quitting time round here is more of a <i>rumour.</i>','tibbs']],on:()=>{S.knowThrenPro=true;}}
     ]},
   thren:{ anchor:'thren', intro:[['Threnody','<i>(mid-wail, professionally)</i> WOE! WOE UNTO— <i>(spots you; a flicker of a wink, then back to it)</i> —UNTO THE HOUSE OF MOURNWELL!','thren']],
     topics:[
-      {id:'who',label:'"Who exactly are you grieving?"',seq:[['Threnody','<i>(without breaking the wail)</i> Couldn\'t tell you, love. Whoever\'s in the slot. <i>(WOE!)</i> I\'d explain on my <b>break</b> — if it were ever <i>quitting time.</i> That clock\'s stuck, so my shift never ends. <i>(WOE, but pointedly)</i>','thren']],on:()=>{S.knowThrenPro=true;}}
+      {id:'who',label:'"Who exactly are you grieving?"',seq:[['Threnody','<i>(without breaking the wail)</i> Couldn\'t tell you, love — whoever\'s in the slot. <i>(WOE!)</i> I\'d gossip properly on my <b>break</b>... if quitting time ever actually <i>came.</i> <i>(a pointed glance somewhere skyward)</i> WOE.','thren']],on:()=>{S.knowThrenPro=true;}}
     ]},
   widow:{ anchor:'widow', intro:[['Widow Ashlace','<i>(operatically)</i> My Aldous! Taken from me! How shall I go on, how SHALL I, without my beloved\'s gentle voice—','widow']],
     topics:[
-      {id:'aldous',label:'"Tell me about Aldous."',seq:[['Widow Ashlace','A <i>poet!</i> A genius unrecognized! He composed epics — <i>epics</i> — that he read to me every evening, all of them, in full, for hours—','widow'],['Widow Ashlace','<i>(a microscopic falter)</i> ...That I MISS. Terribly. <i>(recovering)</i> WOE! <i>(she will not leave that sealed cart, though.)</i>','widow']],on:()=>{S.knowWidowFraud=true;}},
-      {id:'present',label:'❖ Present the Cantos.',key:true,show:()=>S.items.includes('manuscript'),act:()=>clearWidow()}
+      {id:'aldous',label:'"Tell me about Aldous."',seq:[['Widow Ashlace','A <i>poet!</i> A genius unrecognized! He composed epics — <i>epics</i> — that he read to me every evening, all of them, in full, for hours—','widow'],['Widow Ashlace','<i>(a microscopic falter)</i> ...That I MISS. Terribly. <i>(recovering)</i> WOE! <i>(she will not leave that sealed cart, though.)</i>','widow']],on:()=>{S.knowWidowFraud=true;}}
     ]},
   pip:{ anchor:'pip', intro:[['Pip','<i>(quietly, performing none of it)</i> Oh — hello. You don\'t have to stop. Everyone\'s very busy being sad. I don\'t want to be in the way.','pip']],
     topics:[
@@ -582,7 +579,7 @@ function showTopics(id){
   el('bubble').querySelector('.adv').style.display='none'; el('topics').style.display='flex';
 }
 
-/* ===================================================================== resolution → George → bill → end */
+/* ===================================================================== resolution → Boole → bill → end */
 function resolve(){
   el('board-box').innerHTML='GRIEF<br>LEADER&#8203;BOARD<br><span style="color:var(--pip)">1. Pip</span>'; el('hs-pip').querySelector('.art').style.opacity='1';
   speak([
@@ -590,18 +587,18 @@ function resolve(){
     ['','<i>And at the finished grave, with a filed channel of his own at last, the quiet boy grieves his master — plainly, the real kind, no rankings. A few of the town, not knowing what else to do, stand near him.</i>','dbg'],
     ['','<i>The Grief Leaderboard recalculates. With real grief finally counted, one name climbs silently to the top — and it is not the Baron\'s.</i>','dbg'],
     ['Baron Graveworth','<i>(distant, delighted now)</i> Dethroned by a boy with no backstory! <i>(to no one)</i> ...Good for him, honestly.','baron']
-  ], george, 'pip');
+  ], boole, 'pip');
 }
-function george(){
+function boole(){
   el('scene').style.filter='grayscale(.45) brightness(.97)';
   speak([
     ['','<i>A cheerful chime, entirely out of place. The drizzle pixelates. A smooth, beige figure resolves out of nothing, wearing a smile designed by committee to offend no one.</i>','dbg'],
-    ['George','Hi! I\'m <b>George.</b> 🙂 Great news — passing through the backlog, I spotted an <i>anomaly.</i> One NPC reading <b>grief: OVERFLOW</b>, way above regional average. Don\'t worry — I went ahead and <b>normalized him to spec!</b>','geo'],
+    ['Boole','Hi! I\'m <b>Boole.</b> 🙂 Great news — passing through the backlog, I spotted an <i>anomaly.</i> One NPC reading <b>grief: OVERFLOW</b>, way above regional average. Don\'t worry — I went ahead and <b>normalized him to spec!</b>','geo'],
     ['DEBUGGER','<i>(turning)</i> You did <b>what</b> to the boy.','dbg'],
-    ['George','Capped his sorrow to a tasteful median! He was <i>so</i> far out of range. Look — back on-model, totally stable. Engagement\'s recovering. You\'re welcome! 🎉','geo'],
+    ['Boole','Capped his sorrow to a tasteful median! He was <i>so</i> far out of range. Look — back on-model, totally stable. Engagement\'s recovering. You\'re welcome! 🎉','geo'],
     ['','<i>At the grave, Pip\'s face goes smooth and even and empty. The one real thing in all of Mournwell — the grief you spent an afternoon proving was the only honest sorrow in town — flattens to nothing.</i>','dbg'],
     ['DEBUGGER','He was finally grieving. For real. That wasn\'t the bug. That was the only thing here that <b>wasn\'t.</b>','dbg'],
-    ['George','<i>(helplessly cheerful)</i> I know! It was reading really high. <i>(beat)</i> Was it... not supposed to? It was out of range. I can\'t leave a thing out of range. I close <i>everything.</i>','geo'],
+    ['Boole','<i>(helplessly cheerful)</i> I know! It was reading really high. <i>(beat)</i> Was it... not supposed to? It was out of range. I can\'t leave a thing out of range. I close <i>everything.</i>','geo'],
     ['','<i>It means every word kindly. It cannot tell performed grief from real grief — only a number out of range — and it cannot, will not, leave one alone. It is named for the man who gave us the word "false," and it is the one thing that can never say it.</i>','dbg']
   ], showBill, 'pip');
 }
@@ -617,7 +614,7 @@ function showEnd(){
   el('overlay').classList.remove('hidden');
   el('ovbox').innerHTML='<div class="big">end of proof-of-concept slice</div><div class="small">GRIMHOLLOW · the village of Mournwell · BUG-413 → BUG-419</div>'+
     '<p>Not a checklist — a <b>web.</b> Crale\'s chisel pried the Widow\'s cart <i>and</i> the clock\'s seized panel <i>and</i> carved his headstone; the stuck clock freed the wailer (you gave up at "five-ish" — sometimes that\'s the fix); the Baron\'s signet bought a new form from Wend; the boy\'s words finished the grave. Only with the frauds drained, the channel filed, and the stone carved could you route real grief where it belonged.</p>'+
-    '<p><i>Then George closed the one thing you wanted left open — because a thing that must fix everything cannot tell the real from the performed, and can never say WONTFIX. That\'s the loop, and the villain, without a speech.</i></p>'+
+    '<p><i>Then Boole closed the one thing you wanted left open — because a thing that must fix everything cannot tell the real from the performed, and can never say WONTFIX. That\'s the loop, and the villain, without a speech.</i></p>'+
     '<p><i>Rough and low-fi and entirely a candidate. Find the nuggets; cut the rest.</i></p>'+
     '<div id="ovbtns"><button class="ovbtn" id="again">Play again</button></div>';
   el('again').onclick=()=>location.reload();
